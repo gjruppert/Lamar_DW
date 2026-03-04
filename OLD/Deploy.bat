@@ -1,1 +1,0 @@
-sqlcmd -S SANDBOX1 -d DW_BronzeSilver_DEV1 -i C:\JDA\Lamar\Code\Deploy.sql

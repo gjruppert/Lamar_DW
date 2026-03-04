@@ -71,16 +71,16 @@ if ($LASTEXITCODE -ge 8) {
   Write-Error "robocopy failed for Lamar_Index (exit $LASTEXITCODE)"
 }
 
-# Copy DEVDW deploy scripts to client root (source: Deploy_DEVDW.* -> client: Deploy.*)
-$devdwDeploySql = Join-Path $CodeDir "Deploy_DEVDW.sql"
-$devdwDeployBat = Join-Path $CodeDir "Deploy_DEVDW.bat"
-if (Test-Path $devdwDeploySql) {
-  Copy-Item -Path $devdwDeploySql -Destination (Join-Path $ClientRoot "Deploy.sql") -Force
+# Copy deploy scripts to client root (same Deploy.bat as Code; Deploy.sql uses StoredProcedures paths)
+$deploySql = Join-Path $CodeDir "Deploy_DEVDW.sql"
+$deployBat = Join-Path $CodeDir "Deploy.bat"
+if (Test-Path $deploySql) {
+  Copy-Item -Path $deploySql -Destination (Join-Path $ClientRoot "Deploy.sql") -Force
   Write-Host "Copied Deploy_DEVDW.sql to $ClientRoot\Deploy.sql"
 }
-if (Test-Path $devdwDeployBat) {
-  Copy-Item -Path $devdwDeployBat -Destination (Join-Path $ClientRoot "Deploy.bat") -Force
-  Write-Host "Copied Deploy_DEVDW.bat to $ClientRoot\Deploy.bat"
+if (Test-Path $deployBat) {
+  Copy-Item -Path $deployBat -Destination (Join-Path $ClientRoot "Deploy.bat") -Force
+  Write-Host "Copied Deploy.bat to $ClientRoot\Deploy.bat"
 }
 
 Write-Host ""

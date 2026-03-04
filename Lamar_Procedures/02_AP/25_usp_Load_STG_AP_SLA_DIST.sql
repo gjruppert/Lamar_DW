@@ -1,10 +1,9 @@
 /* =========================================================
-   usp_Load_STG_AP_SLA_DIST
-   Populates svo.STG_AP_SLA_DIST from svo.F_SL_JOURNAL_DISTRIBUTION.
-   Uses dynamic SQL to avoid procedure compile-time column resolution issue.
-   Prerequisite: usp_Load_F_SL_JOURNAL_DISTRIBUTION must run before AP load.
-   NOTE: usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION now inlines this logic
-   (avoids cross-proc temp-table scope). Use this proc for standalone testing.
+   usp_Load_STG_AP_SLA_DIST (DEPRECATED – no longer deployed)
+   Previously populated svo.STG_AP_SLA_DIST from svo.F_SL_JOURNAL_DISTRIBUTION.
+   Replaced by: usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION now reads directly from
+   svo.F_SL_JOURNAL_DISTRIBUTION (DW fact) with static SQL. No helper, no staging.
+   Kept for reference only.
    ========================================================= */
 CREATE OR ALTER PROCEDURE svo.usp_Load_STG_AP_SLA_DIST
     @LastWatermark DATETIME2(7)

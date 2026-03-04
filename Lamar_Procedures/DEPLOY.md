@@ -15,30 +15,24 @@ Run in this sequence (or use the master script once):
 
 ## Master deploy script
 
-From the **Code** directory (or run any `Deploy_DEVDW_*.bat` from any directory; it changes to Code so all subject areas including 05_SF are included), run:
+From the **Code** directory, run:
 
+```bash
+Deploy.bat
+```
+
+Or run directly:
 ```bash
 sqlcmd -S <server> -d <database> -i Deploy.sql
 ```
 
+`Deploy.bat` is interactive: you pick a server (DEVDW or SANDBOX1), then a database, then it runs `Deploy.sql`. Databases: `DW_BronzeSilver_DEV1`, `DW_BronzeSilver_PROD`, `Oracle_Reporting_P2`, `DW_BronzeSilver_TEST`.
+
 Or open `Code/Deploy.sql` in SSMS and execute in **sqlcmd mode**. The script runs steps 1–3 above in order; step 4 (indexes) is commented out.
-
-### Deploy to server DEVDW (three databases)
-
-Databases on server **DEVDW**: `DW_BronzeSilver_DEV1`, `DW_BronzeSilver_PROD`, `Oracle_Reporting_P2`.
-
-| Database | Batch file | Command line |
-|----------|------------|-------------|
-| DW_BronzeSilver_DEV1 | `Code\Deploy_DEVDW_DW_BronzeSilver_DEV1.bat` | `sqlcmd -S DEVDW -d DW_BronzeSilver_DEV1 -i Deploy.sql` |
-| DW_BronzeSilver_PROD | `Code\Deploy_DEVDW_DW_BronzeSilver_PROD.bat` | `sqlcmd -S DEVDW -d DW_BronzeSilver_PROD -i Deploy.sql` |
-| Oracle_Reporting_P2 | `Code\Deploy_DEVDW_Oracle_Reporting_P2.bat` | `sqlcmd -S DEVDW -d Oracle_Reporting_P2 -i Deploy.sql` |
-| **All three** | `Code\Deploy_DEVDW_All.bat` | Runs deploy to each database in sequence |
-
-Run batch files from the Code directory (or double-click; they use `%~dp0` to find `Deploy.sql`).
 
 ## Client deployment (DEVDW / StoredProcedures)
 
-Dev stays at `C:\JDA\Lamar\Code`; the client uses `C:\Lamar.QP2.Reporting\OracleIngestion\Silver\StoredProcedures` and server **DEVDW**. To ship changes to the client:
+Dev stays at `C:\JDA\Lamar\Code`; the client uses `C:\Lamar.QP2.Reporting\OracleIngestion\Silver\StoredProcedures` and server **DEVDW** (databases: DW_BronzeSilver_DEV1, DW_BronzeSilver_PROD, Oracle_Reporting_P2, DW_BronzeSilver_TEST). To ship changes to the client:
 
 1. **Sync from Code to client**  
    From the Code directory run:
@@ -46,14 +40,14 @@ Dev stays at `C:\JDA\Lamar\Code`; the client uses `C:\Lamar.QP2.Reporting\Oracle
    .\Sync_To_Client.ps1
    ```
    Optional: `.\Sync_To_Client.ps1 -ClientRoot "C:\Lamar.QP2.Reporting\OracleIngestion\Silver"` (that path is the default).  
-   This syncs `Lamar_Procedures` into `StoredProcedures` (00_Prerequisites … 10_SM), syncs `Lamar_Index` to the client Silver folder, and copies `Deploy_DEVDW.sql` / `Deploy_DEVDW.bat` to the client root as `Deploy.sql` and `Deploy.bat`.
+   This syncs `Lamar_Procedures` into `StoredProcedures` (00_Prerequisites … 10_SM), syncs `Lamar_Index` to the client Silver folder, and copies `Deploy_DEVDW.sql` as `Deploy.sql` and `Deploy.bat` (same interactive batch as Code) to the client root.
 
 2. **Deploy on the client**  
    On the client (or from a machine that can reach DEVDW), open the client Silver directory and run:
    ```batch
    Deploy.bat
    ```
-   Default database is `DW_BronzeSilver_DEV1`. To deploy to another DB: `Deploy.bat Oracle_Reporting_P2` or `Deploy.bat DW_BronzeSilver_PROD`.
+   You will be prompted to select a database: `DW_BronzeSilver_DEV1`, `DW_BronzeSilver_PROD`, `Oracle_Reporting_P2`, or `DW_BronzeSilver_TEST`.
 
 When you add or remove procedures, update both `Deploy.sql` and `Deploy_DEVDW.sql` so the client deploy stays in sync.
 
@@ -64,7 +58,7 @@ When you add or remove procedures, update both `Deploy.sql` and `Deploy_DEVDW.sq
 | ETL infrastructure | 2 | 00_Prerequisites/ |
 | Table DDL | 1 script | Lamar_Index/Create_Tables_DDL.sql |
 | Common SPs | 24 | 01_Common/ |
-| AP SPs | 6 | 02_AP/ (incl. 25_usp_Load_STG_AP_SLA_DIST helper) |
+| AP SPs | 5 | 02_AP/ |
 | GL SPs | 3 | 03_GL/ |
 | OS SPs | 1 | 04_OS/ |
 | SF (Salesforce) | 2 SPs + 3 DDL | 05_SF/ (staging + D_SF_OPPORTUNITY DDL, then usp_Load_D_SF_OPPORTUNITY, usp_Load_F_SF_OPPORTUNITY_LINE_ITEM) |

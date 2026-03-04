@@ -51,7 +51,7 @@ PRINT '--- 02_AP ---';
 GO
 :r Lamar_Procedures/02_AP/10_usp_Load_D_AP_DISBURSEMENT_HEADER.sql
 :r Lamar_Procedures/02_AP/20_usp_Load_D_AP_INVOICE_HEADER.sql
-:r Lamar_Procedures/02_AP/25_usp_Load_STG_AP_SLA_DIST.sql
+-- :r Lamar_Procedures/02_AP/25_usp_Load_STG_AP_SLA_DIST.sql  -- Deprecated: SLA now from F_SL_JOURNAL_DISTRIBUTION in main proc
 :r Lamar_Procedures/02_AP/30_usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION.sql
 :r Lamar_Procedures/02_AP/40_usp_Load_F_AP_PAYMENTS.sql
 :r Lamar_Procedures/02_AP/50_usp_Load_F_AP_AGING_SNAPSHOT.sql

@@ -64,6 +64,20 @@ EXEC svo.usp_Load_F_GL_BALANCES;
 
 PRINT '=== GL Load - Complete ===';
 
+/* =========================================================
+   Run SL (Subledger) incremental load procedures
+   Prerequisites: Common dimensions and LINES_CODE_COMBO_LOOKUP
+   (Run_Common_Dimensions.sql or equivalent).
+   ========================================================= */
+
+SET NOCOUNT ON;
+
+PRINT '=== SL Load - Start ===';
+
+PRINT '--- F_SL_JOURNAL_DISTRIBUTION ---';
+EXEC svo.usp_Load_F_SL_JOURNAL_DISTRIBUTION;
+
+PRINT '=== SL Load - Complete ===';
 
 
 /* =========================================================
@@ -129,22 +143,6 @@ PRINT '--- (2) F_SF_OPPORTUNITY_LINE_ITEM ---';
 EXEC svo.usp_Load_F_SF_OPPORTUNITY_LINE_ITEM;
 
 PRINT '=== SF Load - Complete ===';
-
-
-/* =========================================================
-   Run SL (Subledger) incremental load procedures
-   Prerequisites: Common dimensions and LINES_CODE_COMBO_LOOKUP
-   (Run_Common_Dimensions.sql or equivalent).
-   ========================================================= */
-
-SET NOCOUNT ON;
-
-PRINT '=== SL Load - Start ===';
-
-PRINT '--- F_SL_JOURNAL_DISTRIBUTION ---';
-EXEC svo.usp_Load_F_SL_JOURNAL_DISTRIBUTION;
-
-PRINT '=== SL Load - Complete ===';
 
 
 /* =========================================================

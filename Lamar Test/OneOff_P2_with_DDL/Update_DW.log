@@ -1,0 +1,107 @@
+
+10_LINES_CODE_COMBO_LOOKUP... Start 2026-02-07 19:17:23
+
+(115953 rows affected)
+
+20_D_ACCOUNT... Start 2026-02-07 19:17:25
+Warning: Null value is eliminated by an aggregate or other SET operation.
+
+(577 rows affected)
+
+(1 rows affected)
+
+30_BUSINESS_OFFERING... Start 2026-02-07 19:17:25
+
+(91 rows affected)
+
+(1 rows affected)
+
+40_COMPANY... Start 2026-02-07 19:17:25
+
+(653 rows affected)
+
+(1 rows affected)
+
+50_COST_CENTER... Start 2026-02-07 19:17:26
+
+(91 rows affected)
+
+(1 rows affected)
+
+60_INDUSTRY... Start 2026-02-07 19:17:26
+
+(236 rows affected)
+
+(1 rows affected)
+
+70_INTERCOMPANY... Start 2026-02-07 19:17:26
+
+(655 rows affected)
+
+(1 rows affected)
+
+D_BUSINESS_UNIT... Start 2026-02-07 19:17:27
+
+(1 rows affected)
+
+(4 rows affected)
+
+D_CALENDAR... Start 2026-02-07 19:17:27
+
+(4018 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+D_CURRENCY... Start 2026-02-07 19:17:27
+
+(1 rows affected)
+
+(3132 rows affected)
+
+D_LEDGER... Start 2026-02-07 19:17:27
+
+(3 rows affected)
+
+(1 rows affected)
+
+D_LEGAL_ENTITY... Start 2026-02-07 19:17:27
+
+(81 rows affected)
+
+D_VENDOR_SITE... Start 2026-02-07 19:17:27
+
+(1 rows affected)
+
+(89616 rows affected)
+
+10_D_GL_HEADER... Start 2026-02-07 19:17:28
+
+(1 rows affected)
+
+(75189 rows affected)
+
+20_GL_Load_Balance_Fact... Start 2026-02-07 19:17:29
+
+(3829388 rows affected)
+
+30_GL_Load_Lines_Fact... Start 2026-02-07 19:17:53
+
+(171201049 rows affected)
+
+D_AP_DISBURSEMENT_HEADER... Start 2026-02-07 19:44:02
+
+(1 rows affected)
+
+(604520 rows affected)
+
+D_AP_INVOICE_HEADER... Start 2026-02-07 19:44:10
+
+(1 rows affected)
+
+(1210195 rows affected)
+
+F_AP_INVOICE_LINE_DISTRIBUTION... Start 2026-02-07 19:44:17
+Msg 117, Level 15, State 1, Server Sandbox1, Line 118
+The object name 'Oracle_Reporting_P2.Oracle_Reporting_P2.svo.F_AP_PAYMENTS' contains more than the maximum number of prefixes. The maximum is 2.

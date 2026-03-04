@@ -1,0 +1,116 @@
+
+10_LINES_CODE_COMBO_LOOKUP... Start 2026-02-05 07:00:02
+
+(115971 rows affected)
+
+20_D_ACCOUNT... Start 2026-02-05 07:00:04
+Warning: Null value is eliminated by an aggregate or other SET operation.
+
+(577 rows affected)
+
+(1 rows affected)
+
+30_BUSINESS_OFFERING... Start 2026-02-05 07:00:04
+
+(91 rows affected)
+
+(1 rows affected)
+
+40_COMPANY... Start 2026-02-05 07:00:04
+
+(653 rows affected)
+
+(1 rows affected)
+
+50_COST_CENTER... Start 2026-02-05 07:00:04
+
+(91 rows affected)
+
+(1 rows affected)
+
+60_INDUSTRY... Start 2026-02-05 07:00:04
+
+(236 rows affected)
+
+(1 rows affected)
+
+70_INTERCOMPANY... Start 2026-02-05 07:00:04
+
+(655 rows affected)
+
+(1 rows affected)
+
+D_BUSINESS_UNIT... Start 2026-02-05 07:00:04
+
+(1 rows affected)
+
+(4 rows affected)
+
+D_CALENDAR... Start 2026-02-05 07:00:04
+
+(4018 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+D_CURRENCY... Start 2026-02-05 07:00:06
+
+(1 rows affected)
+
+(3134 rows affected)
+
+D_LEDGER... Start 2026-02-05 07:00:06
+
+(3 rows affected)
+
+(1 rows affected)
+
+D_LEGAL_ENTITY... Start 2026-02-05 07:00:06
+
+(80 rows affected)
+
+D_VENDOR_SITE... Start 2026-02-05 07:00:06
+
+(1 rows affected)
+
+(89616 rows affected)
+
+10_D_GL_HEADER... Start 2026-02-05 07:00:07
+
+(1 rows affected)
+
+(75240 rows affected)
+
+20_GL_Load_Balance_Fact... Start 2026-02-05 07:00:07
+
+(3829402 rows affected)
+
+30_GL_Load_Lines_Fact... Start 2026-02-05 07:00:24
+
+(171318287 rows affected)
+
+D_AP_DISBURSEMENT_HEADER... Start 2026-02-05 07:18:58
+
+(1 rows affected)
+
+(604520 rows affected)
+
+D_AP_INVOICE_HEADER... Start 2026-02-05 07:19:13
+
+(1 rows affected)
+
+(1210195 rows affected)
+
+F_AP_INVOICE_LINE_DISTRIBUTION... Start 2026-02-05 07:19:22
+
+(3642314 rows affected)
+
+F_AP_PAYMENTS... Start 2026-02-05 07:20:57
+
+(1246974 rows affected)
+
+F_AP_AGING_SNAPSHOT... Start 2026-02-05 07:21:36
+Warning: Null value is eliminated by an aggregate or other SET operation.
+
+(7328 rows affected)

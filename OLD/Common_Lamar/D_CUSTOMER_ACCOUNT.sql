@@ -1,0 +1,62 @@
+USE [Oracle_Reporting_P2];
+GO
+
+IF OBJECT_ID('svo.D_CUSTOMER_ACCOUNT','U') IS NOT NULL 
+    DROP TABLE svo.D_CUSTOMER_ACCOUNT;
+GO
+
+CREATE TABLE svo.D_CUSTOMER_ACCOUNT
+(
+    CUSTOMER_SK             BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    CUSTOMER_ACCOUNT_ID     BIGINT       NOT NULL,
+    ACCOUNT_NUMBER          VARCHAR(60) NULL,
+    ACCOUNT_NAME            VARCHAR(360) NULL,
+    STATUS_CODE             VARCHAR(30) NULL,
+    CUSTOMER_TYPE           VARCHAR(60) NULL,
+    PARTY_ID                VARCHAR(60) NULL,
+    BZ_LOAD_DATE            DATE         NULL,
+    SV_LOAD_DATE            DATE         NULL
+) ON [FG_SilverDim];
+GO
+
+-- plug / unknown
+SET IDENTITY_INSERT svo.D_CUSTOMER_ACCOUNT ON;
+INSERT INTO svo.D_CUSTOMER_ACCOUNT
+    (CUSTOMER_SK, CUSTOMER_ACCOUNT_ID, ACCOUNT_NUMBER, ACCOUNT_NAME, STATUS_CODE, CUSTOMER_TYPE,
+     PARTY_ID, BZ_LOAD_DATE, SV_LOAD_DATE)
+VALUES
+    (0, -1, 'UNKNOWN', 'UNKNOWN CUSTOMER', 'UNKNOWN', 'UNKNOWN', NULL, '0001-01-01', '0001-01-01');
+SET IDENTITY_INSERT svo.D_CUSTOMER_ACCOUNT OFF;
+GO
+
+-- initial load
+INSERT INTO svo.D_CUSTOMER_ACCOUNT
+(
+    CUSTOMER_ACCOUNT_ID,
+    ACCOUNT_NUMBER,
+    ACCOUNT_NAME,
+    STATUS_CODE,
+    CUSTOMER_TYPE,
+    PARTY_ID,
+    BZ_LOAD_DATE,
+    SV_LOAD_DATE
+)
+SELECT DISTINCT
+    A.CustAccountId             AS CUSTOMER_ACCOUNT_ID,   
+    A.AccountNumber             AS ACCOUNT_NUMBER,       
+    A.AccountName               AS ACCOUNT_NAME,         
+    A.Status                    AS STATUS_CODE,  
+    A.CustomerType              AS CUSTOMER_TYPE,         
+    A.PartyId                   AS PARTY_ID,
+    CAST(A.AddDateTime AS DATE) AS BZ_LOAD_DATE,
+    CAST(GETDATE() AS DATE)     AS SV_LOAD_DATE
+FROM bzo.AR_CustomerAccountExtractPVO A
+WHERE A.CustAccountId IS NOT NULL
+  AND NOT EXISTS (
+        SELECT 1
+        FROM   svo.D_CUSTOMER_ACCOUNT D
+        WHERE  D.CUSTOMER_ACCOUNT_ID = A.CustAccountId
+    );
+GO
+
+

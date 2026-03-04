@@ -1,0 +1,64 @@
+USE [Oracle_Reporting_P2];
+GO
+--------------------------
+-- D_CUSTOMER_ACCOUNT_SITE
+--------------------------
+IF OBJECT_ID('svo.D_CUSTOMER_ACCOUNT_SITE','U') IS NOT NULL DROP TABLE svo.D_CUSTOMER_ACCOUNT_SITE
+GO
+
+BEGIN
+  CREATE TABLE svo.D_CUSTOMER_ACCOUNT_SITE
+  (
+    CUSTOMER_SITE_SK         bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    CUSTOMER_SITE            bigint     NOT NULL,     -- CustAcctSiteId
+    CUSTOMER_ACCOUNT         bigint     NOT NULL,     -- CustAccountId
+    PARTY_SITE               bigint     NOT NULL,     -- PartySiteId
+    STATUS                   varchar(1) NULL,
+    LANGUAGE                 varchar(4) NULL,
+    START_DATE               date       NULL,
+    END_DATE                 date       NULL,
+    BZ_LOAD_DATE             date       NOT NULL DEFAULT (CAST(GETDATE() AS date)),
+    SV_LOAD_DATE             date       NOT NULL DEFAULT (CAST(GETDATE() AS date))
+  ) ON [FG_SilverDim];
+  CREATE UNIQUE NONCLUSTERED INDEX UX_D_CUSTOMER_ACCOUNT_SITE ON svo.D_CUSTOMER_ACCOUNT_SITE(CUSTOMER_SITE) ON [FG_SilverDim];
+END;
+
+IF NOT EXISTS (SELECT 1 FROM svo.D_CUSTOMER_ACCOUNT_SITE WHERE CUSTOMER_SITE_SK=0)
+BEGIN
+  SET IDENTITY_INSERT svo.D_CUSTOMER_ACCOUNT_SITE ON;
+  INSERT svo.D_CUSTOMER_ACCOUNT_SITE (CUSTOMER_SITE_SK,CUSTOMER_SITE,CUSTOMER_ACCOUNT,PARTY_SITE,STATUS,BZ_LOAD_DATE,SV_LOAD_DATE)
+  VALUES (0,-1,-1,-1,'U',CAST(GETDATE() AS date),CAST(GETDATE() AS date));
+  SET IDENTITY_INSERT svo.D_CUSTOMER_ACCOUNT_SITE OFF;
+END;
+
+--------------------------
+-- Load D_CUSTOMER_ACCOUNT_SITE
+--------------------------
+MERGE svo.D_CUSTOMER_ACCOUNT_SITE AS D
+USING (
+  SELECT
+    CustAcctSiteId AS CUSTOMER_SITE,
+    CustAccountId  AS CUSTOMER_ACCOUNT,
+    PartySiteId    AS PARTY_SITE,
+    Status         AS STATUS,
+    Language,
+    StartDate,
+    EndDate,
+    AddDateTime
+  FROM bzo.AR_CustomerAccountSiteExtractPVO
+) AS S
+ON (D.CUSTOMER_SITE = S.CUSTOMER_SITE)
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT (CUSTOMER_SITE,CUSTOMER_ACCOUNT,PARTY_SITE,STATUS,LANGUAGE,START_DATE,END_DATE,BZ_LOAD_DATE,SV_LOAD_DATE)
+  VALUES (S.CUSTOMER_SITE,S.CUSTOMER_ACCOUNT,S.PARTY_SITE,S.STATUS,S.Language,S.StartDate,S.EndDate,CAST(S.AddDateTime AS date),CAST(GETDATE() AS date))
+WHEN MATCHED THEN
+  UPDATE SET
+    CUSTOMER_ACCOUNT    = S.CUSTOMER_ACCOUNT,
+    PARTY_SITE          = S.PARTY_SITE,
+    STATUS              = S.STATUS,
+    LANGUAGE            = S.Language,
+    START_DATE          = CAST(S.StartDate AS date),
+    END_DATE            = CAST(S.EndDate AS date),
+    BZ_LOAD_DATE        = CAST(S.AddDateTime AS date),
+    SV_LOAD_DATE        = CAST(GETDATE() AS date);
+

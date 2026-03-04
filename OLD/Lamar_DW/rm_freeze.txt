@@ -1,0 +1,60 @@
+
+
+Yes. Park RM exactly where it is and move on to AP.
+
+Here’s the clean “freeze point” so you can come back without re-litigating everything:
+
+RM Freeze Summary (what’s broken and why)
+
+1) Your watermark table
+
+Your actual watermark schema is:
+	•	etl.ETL_WATERMARK(TABLE_NAME, LAST_WATERMARK, CRE_DATE, UDT_DATE)
+	•	NOT TARGET_OBJECT / WATERMARK_VALUE
+
+So the SP needs to read:
+	•	@AsOfDttm = (select LAST_WATERMARK from etl.ETL_WATERMARK where TABLE_NAME = 'svo.F_RM_SATISFACTION_EVENTS')
+	•	If missing: insert a row with LAST_WATERMARK = '1900-01-01'
+	•	If LAST_WATERMARK = '1900-01-01': truncate + full load
+	•	Else incremental load using AddDateTime > @AsOfDttm (or whichever source datetime you standardize on)
+
+2) The join you want (lock it in)
+
+You explicitly want this:
+LEFT JOIN svo.D_RM_SATISFACTION_EVENT SE
+  ON SE.POL_SATISFACTION_EVENT_ID = c.PerfObligationLineId
+
+Not negotiable. We keep it.
+
+3) You’re hitting duplicate grain in the fact
+
+Error:
+UX_F_RM_SAT_EVENTS_GRAIN duplicate key (7584, 20250818, 20250831, A)
+
+That means your insert is producing more than one row for the same natural grain (whatever your unique index defines, looks like: PerfObligationLine + SegmentStart/End + RowType, or similar).
+
+Typical causes in your query:
+	•	A 1-to-many join after segmentation (often pricing lines, source doc lines, customer site, item, etc.)
+	•	Or ROW_TYPE logic plus multiple “actual” matches
+	•	Or the SE join accidentally multiplies rows (less likely if D_RM_SATISFACTION_EVENT is truly unique on POL_SATISFACTION_EVENT_ID)
+
+When we resume RM, we’ll have to dedupe FinalRows to the exact unique index grain (using ROW_NUMBER() partitioned by that grain) before insert, or fix the join(s) that multiply rows.
+
+4) UNION column-count error
+
+That is coming from the recursive Segments CTE: the anchor SELECT and recursive SELECT must output the exact same number of columns in the exact same order.
+When you resume RM, we’ll fix that first (it’s mechanical).
+
+⸻
+
+What I need from you when we resume RM
+
+To fix RM quickly later, I need the definition of UX_F_RM_SAT_EVENTS_GRAIN (the exact columns). Just paste:
+IX_F_RM_SAT_EVENTS_CONTRACT	nonclustered located on FG_SilverFact	RM_CONTRACT_SK, RM_PERF_OBLIGATION_SK, RM_PERF_OBLIGATION_LINE_SK, RM_SATISFACTION_EVENT_SK, SATISFACTION_MEASUREMENT_DATE_SK
+IX_F_RM_SAT_EVENTS_CUST_BU	nonclustered located on FG_SilverFact	CUSTOMER_SK, BUSINESS_UNIT_SK, SATISFACTION_MEASUREMENT_DATE_SK
+PK_F_RM_SATISFACTION_EVENTS	clustered, unique, primary key located on FG_SilverFact	RM_SATISFACTION_EVENT_FACT_PK
+UX_F_RM_SAT_EVENTS_BK	nonclustered, unique located on FG_SilverFact	RM_PERF_OBLIGATION_LINE_SK, SATISFACTION_PERIOD_START_DATE_SK, SATISFACTION_PERIOD_END_DATE_SK, ROW_TYPE
+UX_F_RM_SAT_EVENTS_GRAIN	nonclustered, unique located on FG_SilverFact	RM_PERF_OBLIGATION_LINE_SK, SATISFACTION_PERIOD_START_DATE_SK, SATISFACTION_PERIOD_END_DATE_SK, ROW_TYPE
+
+
+

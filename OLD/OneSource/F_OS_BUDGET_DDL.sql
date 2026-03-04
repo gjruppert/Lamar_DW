@@ -1,0 +1,27 @@
+/*
+    F_OS_BUDGET - OneSource Budget Fact Table
+    Source: dbo.OneStreamCSVDetails
+    Entity=Company, UD4=Business Offering, UD3=Sales Category, UD2=Sales Region, Time->PERIOD_YYYYMM
+*/
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
+IF OBJECT_ID(N'svo.F_OS_BUDGET', 'U') IS NOT NULL
+    DROP TABLE svo.F_OS_BUDGET;
+GO
+
+CREATE TABLE svo.F_OS_BUDGET
+(
+    F_OS_BUDGET_PK     BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    COMPANY_SK         BIGINT NOT NULL,
+    BUSINESS_OFFERING_SK BIGINT NOT NULL,
+    COST_CENTER_SK     BIGINT NULL,
+    PERIOD_YYYYMM      INT NOT NULL,
+    AMOUNT             DECIMAL(29,4) NOT NULL,
+    BZ_LOAD_DATE       DATE NULL,
+    SV_LOAD_DATE       DATE NOT NULL
+) ON FG_SilverFact;
+GO

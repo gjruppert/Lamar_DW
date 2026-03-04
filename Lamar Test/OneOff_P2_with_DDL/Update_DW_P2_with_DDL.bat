@@ -1,0 +1,1 @@
+sqlcmd -S SANDBOX1 -d Oracle_Reporting_P2 -E -b -i "C:\JDA\Lamar\OneOff_P2_with_DDL\Load_Script.sql" > Update_DW.log

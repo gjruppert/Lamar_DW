@@ -1,0 +1,81 @@
+USE Oracle_Reporting_P2
+GO
+
+SET NOCOUNT ON;
+GO
+
+/* ============================================================
+   0) D_AR_TRANSACTION_SOURCE (NAME-keyed)
+   ============================================================ */
+
+IF OBJECT_ID('[svo].[D_AR_TRANSACTION_SOURCE]', 'U') IS NOT NULL
+    DROP TABLE [svo].[D_AR_TRANSACTION_SOURCE];
+GO
+
+CREATE TABLE [svo].[D_AR_TRANSACTION_SOURCE]
+(
+    TRANSACTION_SOURCE_SK           bigint          IDENTITY(1,1) NOT NULL,
+    AR_TRANSACTION_SOURCE_NAME      varchar(50)     NOT NULL,
+
+    AddDateTime                     datetime        NULL,
+    BZ_LOAD_DATE                    AS CONVERT(date, AddDateTime) PERSISTED,
+    SV_LOAD_DATE                    date            NOT NULL
+        CONSTRAINT DF_D_AR_TRANSACTION_SOURCE_SV_LOAD_DATE DEFAULT (CONVERT(date, GETDATE())),
+
+    CONSTRAINT PK_D_AR_TRANSACTION_SOURCE PRIMARY KEY CLUSTERED (TRANSACTION_SOURCE_SK)
+        ON [FG_SilverDim]
+)
+ON [FG_SilverDim];
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX UX_D_AR_TRANSACTION_SOURCE_BK
+ON [svo].[D_AR_TRANSACTION_SOURCE] (AR_TRANSACTION_SOURCE_NAME)
+ON [FG_SilverDim];
+GO
+
+/* Plug row */
+IF NOT EXISTS (SELECT 1 FROM [svo].[D_AR_TRANSACTION_SOURCE] WHERE AR_TRANSACTION_SOURCE_NAME = 'UNKNOWN')
+BEGIN
+    SET IDENTITY_INSERT [svo].[D_AR_TRANSACTION_SOURCE] ON;
+
+    INSERT INTO [svo].[D_AR_TRANSACTION_SOURCE]
+    (
+        TRANSACTION_SOURCE_SK,
+        AR_TRANSACTION_SOURCE_NAME,
+        AddDateTime,
+        SV_LOAD_DATE
+    )
+    VALUES
+    (
+        0,
+        'UNKNOWN',
+        GETDATE(),
+        CONVERT(date, GETDATE())
+    );
+
+    SET IDENTITY_INSERT [svo].[D_AR_TRANSACTION_SOURCE] OFF;
+END
+GO
+
+;WITH S AS
+(
+    SELECT
+        B.RaBatchSourceName AS AR_TRANSACTION_SOURCE_NAME,
+        B.AddDateTime
+    FROM [bzo].[AR_TransactionBatchSourceExtractPVO] B
+)
+MERGE [svo].[D_AR_TRANSACTION_SOURCE] AS D
+USING S
+ON D.AR_TRANSACTION_SOURCE_NAME = S.AR_TRANSACTION_SOURCE_NAME
+WHEN MATCHED THEN
+    UPDATE SET
+        D.AddDateTime = S.AddDateTime
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT (AR_TRANSACTION_SOURCE_NAME, AddDateTime)
+    VALUES (S.AR_TRANSACTION_SOURCE_NAME, S.AddDateTime)
+WHEN NOT MATCHED BY SOURCE
+    AND D.TRANSACTION_SOURCE_SK <> 0
+THEN DELETE
+;
+GO
+

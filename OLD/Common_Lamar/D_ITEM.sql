@@ -1,0 +1,52 @@
+USE [Oracle_Reporting_P2];
+GO
+
+IF OBJECT_ID('svo.D_ITEM','U') IS NOT NULL DROP TABLE svo.D_ITEM
+GO
+
+BEGIN
+    CREATE TABLE svo.D_ITEM
+    (
+        ITEM_SK             BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        INVENTORY_ITEM_ID   BIGINT        NOT NULL,  -- InventoryItemId
+        ITEM_NUMBER         VARCHAR(100)  NULL,
+        ITEM_DESCRIPTION    VARCHAR(1000) NULL,
+        ITEM_TYPE           VARCHAR(200)  NULL,
+        ITEM_STATUS         VARCHAR(100)  NULL,
+        BZ_LOAD_DATE        DATETIME      NULL,
+        SV_LOAD_DATE        DATETIME      NULL,
+        INFERRED_FLAG       CHAR(1)       NOT NULL CONSTRAINT DF_D_ITEM_INFERRED_FLAG DEFAULT('N')
+    );
+    SET IDENTITY_INSERT svo.D_ITEM ON;
+
+    -- plug row
+    INSERT INTO svo.D_ITEM
+        (ITEM_SK, INVENTORY_ITEM_ID,  ITEM_NUMBER, ITEM_DESCRIPTION, ITEM_TYPE, ITEM_STATUS, BZ_LOAD_DATE, SV_LOAD_DATE, INFERRED_FLAG)
+    VALUES
+        (0, -1, -1,  'Unknown item', 'Unknown', 'Unknown', GETDATE(), GETDATE(), 'Y');
+SET IDENTITY_INSERT svo.D_ITEM OFF;
+
+END;
+GO
+
+-- load / upsert style insert
+INSERT INTO svo.D_ITEM (
+    INVENTORY_ITEM_ID,
+    ITEM_NUMBER,
+    ITEM_DESCRIPTION,
+    ITEM_TYPE,
+    ITEM_STATUS,
+    BZ_LOAD_DATE,
+    SV_LOAD_DATE
+)
+SELECT
+    I.ITEMBASEPEOINVENTORYITEMID         AS INVENTORY_ITEM_ID,
+    I.ITEMBASEPEOITEMNUMBER              AS ITEM_NUMBER,
+    I.ITEMTRANSLATIONPEODESCRIPTION      AS ITEM_DESCRIPTION,
+    ISNULL(I.ITEMBASEPEOITEMTYPE,'UNK')  AS ITEM_TYPE,  
+    I.ItemBasePEOInventoryItemStatusCode               AS ITEM_STATUS,     
+    GETDATE()-1                          AS BZ_LOAD_DATE,
+    GETDATE()                            AS SV_LOAD_DATE
+FROM bzo.PIM_ItemExtractPVO AS I    
+
+GO

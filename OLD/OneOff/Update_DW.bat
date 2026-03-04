@@ -1,0 +1,1 @@
+sqlcmd -S DEVDW -d DW_BronzeSilver_PROD -E -b -i "C:\Users\gerard.ruppert\Documents\Lamar_DW\OneOff\Load_Script.sql" > Update_DW.log

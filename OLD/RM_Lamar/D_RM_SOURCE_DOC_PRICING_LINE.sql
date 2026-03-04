@@ -1,0 +1,197 @@
+USE [Oracle_Reporting_P2];
+GO
+
+IF OBJECT_ID('svo.D_RM_SOURCE_DOC_PRICING_LINE', 'U') IS NOT NULL
+    DROP TABLE svo.D_RM_SOURCE_DOC_PRICING_LINE;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
+CREATE TABLE [svo].[D_RM_SOURCE_DOC_PRICING_LINE]
+(
+    RM_SOURCE_DOC_PRICING_LINE_SK   BIGINT IDENTITY(1,1) NOT NULL,
+
+    SOURCE_DOCUMENT_LINE_ID         BIGINT       NOT NULL,   -- SourceDocLinesDocumentLineId
+
+    BILL_TO_CUSTOMER_ID             BIGINT       NULL,       -- SourceDocLinesBillToCustomerId
+    BILL_TO_CUSTOMER_SITE_ID        BIGINT       NULL,       -- SourceDocLinesBillToCustomerSiteId
+    INVENTORY_ORG_ID                BIGINT       NULL,       -- SourceDocLinesInventoryOrgId
+    ITEM_ID                         BIGINT       NULL,       -- SourceDocLinesItemId
+    MEMO_LINE_ID                    BIGINT       NULL,       -- SourceDocLinesMemoLineId
+    MEMO_LINE_NAME                  VARCHAR(50)  NULL,       -- SourceDocLinesMemoLineName
+    MEMO_LINE_SEQ_ID                BIGINT       NULL,       -- SourceDocLinesMemoLineSeqId
+    SALESREP_ID                     BIGINT       NULL,       -- SourceDocLinesSalesrepId
+    SALESREP_NAME                   VARCHAR(360) NULL,       -- SourceDocLinesSalesrepName
+
+    SRC_ATTRIBUTE_CHAR_41           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_42           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_43           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_44           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_45           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_46           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_47           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_48           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_49           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_50           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_51           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_52           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_53           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_54           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_55           VARCHAR(150) NULL,
+    SRC_ATTRIBUTE_CHAR_56           VARCHAR(150) NULL,
+
+    SRC_ATTRIBUTE_DATE_1            DATE         NULL,       -- SourceDocLinesSrcAttributeDate1
+    SRC_ATTRIBUTE_DATE_2            DATE         NULL,       -- SourceDocLinesSrcAttributeDate2
+
+    SRC_ATTRIBUTE_NUMBER_12         DECIMAL(38,5) NULL,      -- SourceDocLinesSrcAttributeNumber12
+
+    BZ_LOAD_DATE                    DATE         NOT NULL,
+    SV_LOAD_DATE                    DATE         NOT NULL,
+
+    CONSTRAINT PK_D_RM_SOURCE_DOC_PRICING_LINE
+        PRIMARY KEY CLUSTERED (RM_SOURCE_DOC_PRICING_LINE_SK ASC)
+) ON [FG_SilverDim];
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX UX_D_RM_SOURCE_DOC_PRICING_LINE_ID
+ON [svo].[D_RM_SOURCE_DOC_PRICING_LINE] (SOURCE_DOCUMENT_LINE_ID)
+ON [FG_SilverDim];
+GO
+
+-- Plug row
+SET IDENTITY_INSERT svo.D_RM_SOURCE_DOC_PRICING_LINE ON;
+
+INSERT INTO svo.D_RM_SOURCE_DOC_PRICING_LINE
+(
+    RM_SOURCE_DOC_PRICING_LINE_SK,
+    SOURCE_DOCUMENT_LINE_ID,
+    BILL_TO_CUSTOMER_ID,
+    BILL_TO_CUSTOMER_SITE_ID,
+    INVENTORY_ORG_ID,
+    ITEM_ID,
+    MEMO_LINE_ID,
+    MEMO_LINE_NAME,
+    MEMO_LINE_SEQ_ID,
+    SALESREP_ID,
+    SALESREP_NAME,
+    SRC_ATTRIBUTE_CHAR_41,
+    SRC_ATTRIBUTE_CHAR_42,
+    SRC_ATTRIBUTE_CHAR_43,
+    SRC_ATTRIBUTE_CHAR_44,
+    SRC_ATTRIBUTE_CHAR_45,
+    SRC_ATTRIBUTE_CHAR_46,
+    SRC_ATTRIBUTE_CHAR_47,
+    SRC_ATTRIBUTE_CHAR_48,
+    SRC_ATTRIBUTE_CHAR_49,
+    SRC_ATTRIBUTE_CHAR_50,
+    SRC_ATTRIBUTE_CHAR_51,
+    SRC_ATTRIBUTE_CHAR_52,
+    SRC_ATTRIBUTE_CHAR_53,
+    SRC_ATTRIBUTE_CHAR_54,
+    SRC_ATTRIBUTE_CHAR_55,
+    SRC_ATTRIBUTE_CHAR_56,
+    SRC_ATTRIBUTE_DATE_1,
+    SRC_ATTRIBUTE_DATE_2,
+    SRC_ATTRIBUTE_NUMBER_12,
+    BZ_LOAD_DATE,
+    SV_LOAD_DATE
+)
+VALUES
+(
+    0,          -- RM_SOURCE_DOC_PRICING_LINE_SK
+    0,          -- SOURCE_DOCUMENT_LINE_ID
+    0,          -- BILL_TO_CUSTOMER_ID
+    0,          -- BILL_TO_CUSTOMER_SITE_ID
+    0,          -- INVENTORY_ORG_ID
+    0,          -- ITEM_ID
+    0,          -- MEMO_LINE_ID
+    'UNKNOWN',  -- MEMO_LINE_NAME
+    0,          -- MEMO_LINE_SEQ_ID
+    0,          -- SALESREP_ID
+    'UNKNOWN',  -- SALESREP_NAME
+    'UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN',
+    'UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN',
+    '1900-01-01',   -- SRC_ATTRIBUTE_DATE_1
+    '1900-01-01',   -- SRC_ATTRIBUTE_DATE_2
+    0,              -- SRC_ATTRIBUTE_NUMBER_12
+    CAST(GETDATE() AS DATE),
+    CAST(GETDATE() AS DATE)
+);
+
+SET IDENTITY_INSERT svo.D_RM_SOURCE_DOC_PRICING_LINE OFF;
+GO
+
+USE [Oracle_Reporting_P2];
+GO
+
+INSERT INTO svo.D_RM_SOURCE_DOC_PRICING_LINE
+(
+    SOURCE_DOCUMENT_LINE_ID,
+    BILL_TO_CUSTOMER_ID,
+    BILL_TO_CUSTOMER_SITE_ID,
+    INVENTORY_ORG_ID,
+    ITEM_ID,
+    MEMO_LINE_ID,
+    MEMO_LINE_NAME,
+    MEMO_LINE_SEQ_ID,
+    SALESREP_ID,
+    SALESREP_NAME,
+    SRC_ATTRIBUTE_CHAR_41,
+    SRC_ATTRIBUTE_CHAR_42,
+    SRC_ATTRIBUTE_CHAR_43,
+    SRC_ATTRIBUTE_CHAR_44,
+    SRC_ATTRIBUTE_CHAR_45,
+    SRC_ATTRIBUTE_CHAR_46,
+    SRC_ATTRIBUTE_CHAR_47,
+    SRC_ATTRIBUTE_CHAR_48,
+    SRC_ATTRIBUTE_CHAR_49,
+    SRC_ATTRIBUTE_CHAR_50,
+    SRC_ATTRIBUTE_CHAR_51,
+    SRC_ATTRIBUTE_CHAR_52,
+    SRC_ATTRIBUTE_CHAR_53,
+    SRC_ATTRIBUTE_CHAR_54,
+    SRC_ATTRIBUTE_CHAR_55,
+    SRC_ATTRIBUTE_CHAR_56,
+    SRC_ATTRIBUTE_DATE_1,
+    SRC_ATTRIBUTE_DATE_2,
+    SRC_ATTRIBUTE_NUMBER_12,
+    BZ_LOAD_DATE,
+    SV_LOAD_DATE
+)
+SELECT
+    P.SourceDocLinesDocumentLineId       AS SOURCE_DOCUMENT_LINE_ID,
+    P.SourceDocLinesBillToCustomerId     AS BILL_TO_CUSTOMER_ID,
+    P.SourceDocLinesBillToCustomerSiteId AS BILL_TO_CUSTOMER_SITE_ID,
+    P.SourceDocLinesInventoryOrgId       AS INVENTORY_ORG_ID,
+    P.SourceDocLinesItemId               AS ITEM_ID,
+    P.SourceDocLinesMemoLineId           AS MEMO_LINE_ID,
+    P.SourceDocLinesMemoLineName         AS MEMO_LINE_NAME,
+    P.SourceDocLinesMemoLineSeqId        AS MEMO_LINE_SEQ_ID,
+    P.SourceDocLinesSalesrepId           AS SALESREP_ID,
+    P.SourceDocLinesSalesrepName         AS SALESREP_NAME,
+    P.SourceDocLinesSrcAttributeChar41   AS SRC_ATTRIBUTE_CHAR_41,
+    P.SourceDocLinesSrcAttributeChar42   AS SRC_ATTRIBUTE_CHAR_42,
+    P.SourceDocLinesSrcAttributeChar43   AS SRC_ATTRIBUTE_CHAR_43,
+    P.SourceDocLinesSrcAttributeChar44   AS SRC_ATTRIBUTE_CHAR_44,
+    P.SourceDocLinesSrcAttributeChar45   AS SRC_ATTRIBUTE_CHAR_45,
+    P.SourceDocLinesSrcAttributeChar46   AS SRC_ATTRIBUTE_CHAR_46,
+    P.SourceDocLinesSrcAttributeChar47   AS SRC_ATTRIBUTE_CHAR_47,
+    P.SourceDocLinesSrcAttributeChar48   AS SRC_ATTRIBUTE_CHAR_48,
+    P.SourceDocLinesSrcAttributeChar49   AS SRC_ATTRIBUTE_CHAR_49,
+    P.SourceDocLinesSrcAttributeChar50   AS SRC_ATTRIBUTE_CHAR_50,
+    P.SourceDocLinesSrcAttributeChar51   AS SRC_ATTRIBUTE_CHAR_51,
+    P.SourceDocLinesSrcAttributeChar52   AS SRC_ATTRIBUTE_CHAR_52,
+    P.SourceDocLinesSrcAttributeChar53   AS SRC_ATTRIBUTE_CHAR_53,
+    P.SourceDocLinesSrcAttributeChar54   AS SRC_ATTRIBUTE_CHAR_54,
+    P.SourceDocLinesSrcAttributeChar55   AS SRC_ATTRIBUTE_CHAR_55,
+    P.SourceDocLinesSrcAttributeChar56   AS SRC_ATTRIBUTE_CHAR_56,
+    P.SourceDocLinesSrcAttributeDate1    AS SRC_ATTRIBUTE_DATE_1,
+    P.SourceDocLinesSrcAttributeDate2    AS SRC_ATTRIBUTE_DATE_2,
+    P.SourceDocLinesSrcAttributeNumber12 AS SRC_ATTRIBUTE_NUMBER_12,
+    CAST(P.AddDateTime AS DATE)          AS BZ_LOAD_DATE,
+    CAST(GETDATE() AS DATE)              AS SV_LOAD_DATE
+FROM bzo.VRM_SourceDocLinePricingLinesPVO AS P;
+GO

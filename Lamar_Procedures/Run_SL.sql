@@ -8,7 +8,7 @@ SET NOCOUNT ON;
 
 PRINT '=== SL Load - Start ===';
 
-PRINT '--- F_SL_JOURNAL_DISTRIBUTION ---';
+PRINT '--- (1) F_SL_JOURNAL_DISTRIBUTION ---';
 EXEC svo.usp_Load_F_SL_JOURNAL_DISTRIBUTION;
 
 PRINT '=== SL Load - Complete ===';

@@ -58,11 +58,11 @@ When you add or remove procedures, update both `Deploy.sql` and `Deploy_DEVDW.sq
 | ETL infrastructure | 2 | 00_Prerequisites/ |
 | Table DDL | 1 script | Lamar_Index/Create_Tables_DDL.sql |
 | Common SPs | 24 | 01_Common/ |
-| AP SPs | 5 | 02_AP/ |
+| AP SPs | 6 | 02_AP/ |
 | GL SPs | 3 | 03_GL/ |
 | OS SPs | 1 | 04_OS/ |
 | SF (Salesforce) | 2 SPs + 3 DDL | 05_SF/ (staging + D_SF_OPPORTUNITY DDL, then usp_Load_D_SF_OPPORTUNITY, usp_Load_F_SF_OPPORTUNITY_LINE_ITEM) |
-| SL SPs | 1 | 06_SL/ |
+| SL SPs | 1 | 06_SL/ (30_usp_Load_F_SL_JOURNAL_DISTRIBUTION) |
 | RM SPs | 10 | 07_RM/ |
 | OM SPs | 6 | 08_OM/ |
 | AR SPs | 8 | 09_AR/ |
@@ -75,10 +75,11 @@ After deploy, run the load in this order each time:
 
 1. **Common dimensions** – `Run_Common_Dimensions.sql` (CodeCombo + all other dims)
 2. **GL** – `Run_GL.sql` (D_GL_HEADER → F_GL_LINES → F_GL_BALANCES)
-3. **AP** – `Run_AP.sql` (D_AP_DISBURSEMENT_HEADER → D_AP_INVOICE_HEADER → F_AP_* → F_AP_AGING_SNAPSHOT)
-4. **OneSource** (optional) – `Run_OS.sql`
-5. **Salesforce** – `05_SF/Run_SF.sql` (D_SF_OPPORTUNITY → F_SF_OPPORTUNITY_LINE_ITEM)
-6. **RM (Revenue Management)** – `Run_RM.sql` (D_RM_* dimensions → F_RM_SATISFACTION_EVENTS)
-7. **OM (Order Management)** – `Run_OM.sql` (D_HOLD_CODE → D_SALES_REP → D_OM_ORDER_HEADER → D_OM_ORDER_LINE → F_OM_ORDER_LINE → F_OM_FULFILLMENT_LINE)
-8. **AR (Accounts Receivable)** – `Run_AR.sql` (D_AR_TRANSACTION_TYPE → D_AR_TRANSACTION_SOURCE → D_AR_RECEIPT_METHOD → D_AR_COLLECTOR → D_AR_CASH_RECEIPT → D_AR_TRANSACTION → F_AR_TRANSACTION_LINE_DISTRIBUTION → F_AR_RECEIPTS)
-9. **SM (Subscription Management)** – `Run_SM.sql` (D_SM_SUBSCRIPTION → D_SM_SUBSCRIPTION_PRODUCT → F_SM_BILLING)
+3. **SL (Subledger)** – `Run_SL.sql` (F_SL_JOURNAL_DISTRIBUTION) – must run before AP
+4. **AP** – `Run_AP.sql` (D_AP_DISBURSEMENT_HEADER → D_AP_INVOICE_HEADER → F_AP_INVOICE_LINE_DISTRIBUTION → F_AP_INVOICE_LINE_DISTRIBUTION_V2 → F_AP_PAYMENTS → F_AP_AGING_SNAPSHOT)
+5. **OneSource** (optional) – `Run_OS.sql`
+6. **Salesforce** – `05_SF/Run_SF.sql` (D_SF_OPPORTUNITY → F_SF_OPPORTUNITY_LINE_ITEM)
+7. **RM (Revenue Management)** – `Run_RM.sql` (D_RM_* dimensions → F_RM_SATISFACTION_EVENTS)
+8. **OM (Order Management)** – `Run_OM.sql` (D_HOLD_CODE → D_SALES_REP → D_OM_ORDER_HEADER → D_OM_ORDER_LINE → F_OM_ORDER_LINE → F_OM_FULFILLMENT_LINE)
+9. **AR (Accounts Receivable)** – `Run_AR.sql` (D_AR_TRANSACTION_TYPE → D_AR_TRANSACTION_SOURCE → D_AR_RECEIPT_METHOD → D_AR_COLLECTOR → D_AR_CASH_RECEIPT → D_AR_TRANSACTION → F_AR_TRANSACTION_LINE_DISTRIBUTION → F_AR_RECEIPTS)
+10. **SM (Subscription Management)** – `Run_SM.sql` (D_SM_SUBSCRIPTION → D_SM_SUBSCRIPTION_PRODUCT → F_SM_BILLING)

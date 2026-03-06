@@ -1104,53 +1104,6 @@ CREATE TABLE svo.F_AP_AGING_SNAPSHOT
 GO
 
 /* ========
-   STG_AP_DIST_IDS (Staging - InvoiceId, InvoiceDistributionId from #dist for helper)
-   ======== */
-IF OBJECT_ID(N'svo.STG_AP_DIST_IDS', 'U') IS NOT NULL
-    DROP TABLE svo.STG_AP_DIST_IDS;
-GO
-
-CREATE TABLE svo.STG_AP_DIST_IDS
-(
-    InvoiceId             BIGINT NOT NULL,
-    InvoiceDistributionId BIGINT NOT NULL
-) ON FG_SilverMisc;
-GO
-
-/* ========
-   STG_AP_SLA_DIST (Staging - populated by usp_Load_STG_AP_SLA_DIST)
-   ======== */
-IF OBJECT_ID(N'svo.STG_AP_SLA_DIST', 'U') IS NOT NULL
-    DROP TABLE svo.STG_AP_SLA_DIST;
-GO
-
-CREATE TABLE svo.STG_AP_SLA_DIST
-(
-    InvoiceId                    BIGINT NULL,
-    InvoiceDistributionId        BIGINT NULL,
-    InvoiceLineNumber            BIGINT NULL,
-    TransactionEntityEntityCode  VARCHAR(30) NULL,
-    XladistlinkSourceDistributionType VARCHAR(30) NULL,
-    XladistlinkUnroundedEnteredCr DECIMAL(29,4) NULL,
-    XladistlinkUnroundedEnteredDr DECIMAL(29,4) NULL,
-    XlalinesAccountingClassCode VARCHAR(30) NULL,
-    XlalinesCodeCombinationId   BIGINT NULL,
-    XlalinesAccountingDate      DATE NULL,
-    XlalinesAeLineNum           BIGINT NULL,
-    XlalinesDescription         VARCHAR(600) NULL,
-    XladistlinkUnroundedAccountedDr DECIMAL(29,4) NULL,
-    XladistlinkUnroundedAccountedCr DECIMAL(29,4) NULL,
-    XladistlinkLastUpdateDate    DATETIME NULL,
-    XladistlinkLastUpdatedBy     VARCHAR(64) NULL,
-    XladistlinkLastUpdateLogin   VARCHAR(32) NULL,
-    XlalinesLedgerId             BIGINT NULL,
-    XlalinesPartySiteId          BIGINT NULL,
-    DistAddDateTime              DATETIME2(7) NULL,
-    SLA_Source                   VARCHAR(20) NOT NULL
-) ON FG_SilverMisc;
-GO
-
-/* ========
    F_AP_INVOICE_LINE_DISTRIBUTION (Fact)
    ======== */
 IF OBJECT_ID(N'svo.F_AP_INVOICE_LINE_DISTRIBUTION', 'U') IS NOT NULL
@@ -1194,15 +1147,56 @@ CREATE TABLE svo.F_AP_INVOICE_LINE_DISTRIBUTION
     DIST_CODE_COMBINATION_ID BIGINT NOT NULL,
     BZ_LOAD_DATE            DATETIME2(0) NOT NULL,
     SV_LOAD_DATE            DATETIME2(0) NOT NULL,
+    LINES_AMOUNT_debug_only DECIMAL(29,4) NOT NULL
+) ON FG_SilverFact;
+GO
+
+/* ========
+   F_AP_INVOICE_LINE_DISTRIBUTION_V2 (Fact) - AP + SL-derived distributions
+   ======== */
+IF OBJECT_ID(N'svo.F_AP_INVOICE_LINE_DISTRIBUTION_V2', 'U') IS NOT NULL
+    DROP TABLE svo.F_AP_INVOICE_LINE_DISTRIBUTION_V2;
+GO
+
+CREATE TABLE svo.F_AP_INVOICE_LINE_DISTRIBUTION_V2
+(
+    AP_INVOICE_DIST_FACT_PK  BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    AP_INVOICE_HEADER_SK     BIGINT NOT NULL,
+    INVOICE_ID               BIGINT NOT NULL,
+    INVOICE_LINE_NUMBER      BIGINT NULL,
+    INVOICE_DISTRIBUTION_ID  BIGINT NOT NULL,
+    DIST_INV_LINE_NUMBER     BIGINT NULL,
+    DISTRIBUTION_LINE_NUMBER BIGINT NOT NULL,
+    DIST_ACCOUNTING_DATE_SK INT NOT NULL,
+    LINE_ACCOUNTING_DATE_SK INT NOT NULL,
+    ACCOUNT_SK               BIGINT NOT NULL,
+    BUSINESS_OFFERING_SK    BIGINT NOT NULL,
+    COMPANY_SK              BIGINT NOT NULL,
+    COST_CENTER_SK          BIGINT NOT NULL,
+    INDUSTRY_SK             BIGINT NOT NULL,
+    INTERCOMPANY_SK         BIGINT NOT NULL,
+    LEGAL_ENTITY_SK         BIGINT NOT NULL,
+    BUSINESS_UNIT_SK        BIGINT NOT NULL,
+    VENDOR_SITE_SK          BIGINT NOT NULL,
+    LEDGER_SK               BIGINT NOT NULL,
+    DISTRIBUTION_CLASS      VARCHAR(30) NULL,
+    DIST_DESCRIPTION        VARCHAR(1000) NULL,
+    LINE_DESCRIPTION        VARCHAR(1000) NULL,
+    DISTRIBUTION_AMOUNT     DECIMAL(29,4) NOT NULL,
+    POSTED_FLAG             VARCHAR(1) NULL,
+    TYPE_1099               VARCHAR(10) NULL,
+    INV_TAX_JURIDISTION_CODE VARCHAR(60) NULL,
+    INV_TAX_RATE            DECIMAL(29,4) NULL,
+    LINE_TYPE_LOOKUP_CODE   VARCHAR(25) NULL,
+    PO_DISTRIBUTION_ID      BIGINT NULL,
+    DIST_LAST_UPDATE_DATE   DATE NOT NULL,
+    DIST_LAST_UPDATE_BY     VARCHAR(64) NOT NULL,
+    DIST_LAST_UPDATE_LOGIN  VARCHAR(64) NOT NULL,
+    DIST_CODE_COMBINATION_ID BIGINT NOT NULL,
+    BZ_LOAD_DATE            DATETIME2(0) NOT NULL,
+    SV_LOAD_DATE            DATETIME2(0) NOT NULL,
     LINES_AMOUNT_debug_only DECIMAL(29,4) NOT NULL,
-    SLA_ENTITY_CODE         VARCHAR(30) NULL,
-    SLA_DESC                VARCHAR(600) NULL,
-    SLA_DIST_TYPE           VARCHAR(30) NULL,
-    SLA_INVOICE_ID          BIGINT NULL,
-    SLA_DIST_ID             BIGINT NULL,
-    ENTERED_CR              DECIMAL(29,4) NULL,
-    ORIG_AP_INVOICE         TINYINT NOT NULL DEFAULT 1,
-    SLA_ACCTG_CLASS_CODE    VARCHAR(30) NULL
+    IS_ORIG_AP_INV          TINYINT NOT NULL
 ) ON FG_SilverFact;
 GO
 

@@ -86,7 +86,7 @@ BEGIN
 
         SELECT @MaxWatermark = MAX(HeaderAddDateTime) FROM #fulfill;
 
-        INSERT INTO svo.F_OM_FULFILLMENT_LINE (
+        INSERT INTO svo.F_OM_FULFILLMENT_LINE WITH (TABLOCK) (
             FULFILL_LINE_ID,
             ORDER_LINE_SK,
             ORDER_HEADER_SK,

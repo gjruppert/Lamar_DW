@@ -1,11 +1,12 @@
 /* =========================================================
-   usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION
+   usp_Load_STG_AP_INVOICE_LINE_DISTRIBUTION
    Incremental INSERT only. Sources: bzo.AP_InvoiceHeaderExtractPVO,
    AP_InvoiceLineExtractPVO, AP_InvoiceDistributionExtractPVO.
+   Target: svo.STG_AP_INVOICE_LINE_DISTRIBUTION (stage table).
    Filter: D.AddDateTime > @LastWatermark. Dedupe by INVOICE_DISTRIBUTION_ID.
    Resolve SKs via svo.LINES_CODE_COMBO_LOOKUP and svo.D_* (CURR_IND='Y').
    ========================================================= */
-CREATE OR ALTER PROCEDURE svo.usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION
+CREATE OR ALTER PROCEDURE svo.usp_Load_STG_AP_INVOICE_LINE_DISTRIBUTION
     @BatchId INT = NULL
 AS
 BEGIN
@@ -14,7 +15,7 @@ BEGIN
 
     DECLARE
         @ProcName       SYSNAME        = OBJECT_SCHEMA_NAME(@@PROCID) + '.' + OBJECT_NAME(@@PROCID),
-        @TargetObject   SYSNAME        = 'svo.F_AP_INVOICE_LINE_DISTRIBUTION',
+        @TargetObject   SYSNAME        = 'svo.STG_AP_INVOICE_LINE_DISTRIBUTION',
         @StartDttm      DATETIME2(0)   = SYSDATETIME(),
         @EndDttm        DATETIME2(0),
         @RunId          BIGINT         = NULL,
@@ -61,17 +62,23 @@ BEGIN
             D.ApInvoiceDistributionsLastUpdateLogin,
             D.AddDateTime AS DistAddDateTime
         INTO #dist
-        FROM (
+        FROM bzo.AP_InvoiceDistributionExtractPVO D WITH (NOLOCK)
+        WHERE D.AddDateTime > @LastWatermark;
+
+        CREATE CLUSTERED INDEX IX_dist ON #dist (ApInvoiceDistributionsInvoiceDistributionId, DistAddDateTime DESC);
+
+        IF OBJECT_ID('tempdb..#dist_one') IS NOT NULL DROP TABLE #dist_one;
+        SELECT * INTO #dist_one FROM (
             SELECT *,
-                ROW_NUMBER() OVER (PARTITION BY D.ApInvoiceDistributionsInvoiceDistributionId ORDER BY D.AddDateTime DESC) AS rn
-            FROM bzo.AP_InvoiceDistributionExtractPVO D
-            WHERE D.AddDateTime > @LastWatermark
-        ) D
-        WHERE D.rn = 1;
+                ROW_NUMBER() OVER (PARTITION BY ApInvoiceDistributionsInvoiceDistributionId ORDER BY DistAddDateTime DESC) AS rn
+            FROM #dist
+        ) x WHERE rn = 1;
 
-        SELECT @MaxWatermark = MAX(DistAddDateTime) FROM #dist;
+        DROP TABLE #dist;
 
-        INSERT INTO svo.F_AP_INVOICE_LINE_DISTRIBUTION (
+        SELECT @MaxWatermark = MAX(DistAddDateTime) FROM #dist_one;
+
+        INSERT INTO svo.STG_AP_INVOICE_LINE_DISTRIBUTION WITH (TABLOCK) (
             AP_INVOICE_HEADER_SK, INVOICE_ID, INVOICE_LINE_NUMBER, INVOICE_DISTRIBUTION_ID, DIST_INV_LINE_NUMBER, DISTRIBUTION_LINE_NUMBER,
             DIST_ACCOUNTING_DATE_SK, LINE_ACCOUNTING_DATE_SK,
             ACCOUNT_SK, BUSINESS_OFFERING_SK, COMPANY_SK, COST_CENTER_SK, INDUSTRY_SK, INTERCOMPANY_SK, LEGAL_ENTITY_SK, BUSINESS_UNIT_SK, VENDOR_SITE_SK, LEDGER_SK,
@@ -117,11 +124,11 @@ BEGIN
             ISNULL(D.DistAddDateTime, SYSDATETIME()),
             SYSDATETIME(),
             CAST(COALESCE(I.ApInvoiceLinesAllAmount, D.ApInvoiceDistributionsAmount, 0) AS DECIMAL(29,4))
-        FROM #dist D
-        JOIN bzo.AP_InvoiceLineExtractPVO I
+        FROM #dist_one D
+        JOIN bzo.AP_InvoiceLineExtractPVO I WITH (NOLOCK)
             ON I.ApInvoiceLinesAllInvoiceId = D.ApInvoiceDistributionsInvoiceId
            AND I.ApInvoiceLinesAllLineNumber = D.ApInvoiceDistributionsInvoiceLineNumber
-        JOIN bzo.AP_InvoiceHeaderExtractPVO IH
+        JOIN bzo.AP_InvoiceHeaderExtractPVO IH WITH (NOLOCK)
             ON IH.ApInvoicesInvoiceId = D.ApInvoiceDistributionsInvoiceId
         LEFT JOIN svo.LINES_CODE_COMBO_LOOKUP C
             ON CAST(D.ApInvoiceDistributionsDistCodeCombinationId AS BIGINT) = C.CODE_COMBINATION_BK
@@ -136,7 +143,7 @@ BEGIN
         LEFT JOIN svo.D_BUSINESS_UNIT BU ON BU.BUSINESS_UNIT_ID = IH.ApInvoicesOrgId AND BU.CURR_IND = 'Y'
         LEFT JOIN svo.D_VENDOR_SITE VS ON VS.VENDOR_SITE_ID = IH.ApInvoicesVendorSiteId AND VS.CURR_IND = 'Y'
         LEFT JOIN svo.D_LEDGER LDG ON LDG.LEDGER_ID = IH.ApInvoicesSetOfBooksId AND LDG.CURR_IND = 'Y'
-        WHERE NOT EXISTS (SELECT 1 FROM svo.F_AP_INVOICE_LINE_DISTRIBUTION t WHERE t.INVOICE_DISTRIBUTION_ID = D.ApInvoiceDistributionsInvoiceDistributionId);
+        WHERE NOT EXISTS (SELECT 1 FROM svo.STG_AP_INVOICE_LINE_DISTRIBUTION t WHERE t.INVOICE_DISTRIBUTION_ID = D.ApInvoiceDistributionsInvoiceDistributionId);
 
         SET @RowInserted = @@ROWCOUNT;
 

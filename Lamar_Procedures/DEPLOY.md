@@ -76,7 +76,7 @@ After deploy, run the load in this order each time:
 1. **Common dimensions** – `Run_Common_Dimensions.sql` (CodeCombo + all other dims)
 2. **GL** – `Run_GL.sql` (D_GL_HEADER → F_GL_LINES → F_GL_BALANCES)
 3. **SL (Subledger)** – `Run_SL.sql` (F_SL_JOURNAL_DISTRIBUTION) – must run before AP
-4. **AP** – `Run_AP.sql` (D_AP_DISBURSEMENT_HEADER → D_AP_INVOICE_HEADER → F_AP_INVOICE_LINE_DISTRIBUTION → F_AP_INVOICE_LINE_DISTRIBUTION_V2 → F_AP_PAYMENTS → F_AP_AGING_SNAPSHOT)
+4. **AP** – `Run_AP.sql` (D_AP_DISBURSEMENT_HEADER → D_AP_INVOICE_HEADER → STG_AP_INVOICE_LINE_DISTRIBUTION → F_AP_INVOICE_LINE_DISTRIBUTION → F_AP_PAYMENTS → F_AP_AGING_SNAPSHOT)
 5. **OneSource** (optional) – `Run_OS.sql`
 6. **Salesforce** – `05_SF/Run_SF.sql` (D_SF_OPPORTUNITY → F_SF_OPPORTUNITY_LINE_ITEM)
 7. **RM (Revenue Management)** – `Run_RM.sql` (D_RM_* dimensions → F_RM_SATISFACTION_EVENTS)

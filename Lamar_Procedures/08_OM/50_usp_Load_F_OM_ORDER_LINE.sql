@@ -65,7 +65,7 @@ BEGIN
 
         SELECT @MaxWatermark = MAX(LineAddDateTime) FROM #lines;
 
-        INSERT INTO svo.F_OM_ORDER_LINE (
+        INSERT INTO svo.F_OM_ORDER_LINE WITH (TABLOCK) (
             ORDER_HEADER_SK,
             ORDER_LINE_SK,
             LINE_SHIP_DATE_KEY,

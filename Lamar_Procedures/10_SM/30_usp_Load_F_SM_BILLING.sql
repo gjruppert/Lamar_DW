@@ -65,7 +65,7 @@ BEGIN
 
         SELECT @MaxWatermark = MAX(SourceAddDateTime) FROM #lines;
 
-        INSERT INTO svo.F_SM_BILLING (
+        INSERT INTO svo.F_SM_BILLING WITH (TABLOCK) (
             BILL_LINE_ID,
             SUBSCRIPTION_SK,
             SUBSCRIPTION_PRODUCT_SK,

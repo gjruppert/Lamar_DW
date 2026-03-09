@@ -85,7 +85,7 @@ PRINT '=== SL Load - Complete ===';
    Execute in dependency order: dimensions first, then facts,
    F_AP_AGING_SNAPSHOT last (derived from F_AP_PAYMENTS).
    Prerequisites: Common dimensions and LINES_CODE_COMBO_LOOKUP
-   (Run_Common_Dimensions.sql or equivalent).b
+   (Run_Common_Dimensions.sql or equivalent).
    ========================================================= */
 
 SET NOCOUNT ON;
@@ -98,11 +98,11 @@ EXEC svo.usp_Load_D_AP_DISBURSEMENT_HEADER;
 PRINT '--- (2) D_AP_INVOICE_HEADER ---';
 EXEC svo.usp_Load_D_AP_INVOICE_HEADER;
 
-PRINT '--- (3) F_AP_INVOICE_LINE_DISTRIBUTION ---';
-EXEC svo.usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION;
+PRINT '--- (3) STG_AP_INVOICE_LINE_DISTRIBUTION ---';
+EXEC svo.usp_Load_STG_AP_INVOICE_LINE_DISTRIBUTION;
 
-PRINT '--- (4) F_AP_INVOICE_LINE_DISTRIBUTION_V2 ---';
-EXEC svo.usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION_V2;
+PRINT '--- (4) F_AP_INVOICE_LINE_DISTRIBUTION ---';
+EXEC svo.usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION;
 
 PRINT '--- (5) F_AP_PAYMENTS ---';
 EXEC svo.usp_Load_F_AP_PAYMENTS;

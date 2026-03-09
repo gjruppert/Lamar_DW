@@ -83,7 +83,7 @@ BEGIN
                 LM_PRODUCT_TYPE                   NVARCHAR(255) NULL,
                 LM_MARKET                         NVARCHAR(50) NULL,
                 LM_PANEL_NUMBER                   NVARCHAR(1300) NULL,
-                LM_ORACLE_PART_NUMBER             NVARCHAR(50) NULL,
+                LM_ORACLE_PART_NUMBER             NVARCHAR(100) NULL,
                 IS_DELETED                        BIT NULL,
                 BZ_LOAD_DATE                      DATETIME NULL,
                 SV_LOAD_DATE                      DATETIME NOT NULL DEFAULT GETDATE(),

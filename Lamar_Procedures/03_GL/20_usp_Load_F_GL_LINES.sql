@@ -84,7 +84,7 @@ BEGIN
             PRINT 'usp_Load_F_GL_LINES: Full reload (watermark = 1900-01-01). Truncating target and loading all rows (single set-based insert).';
             TRUNCATE TABLE svo.F_GL_LINES;
 
-            INSERT INTO svo.F_GL_LINES
+            INSERT INTO svo.F_GL_LINES WITH (TABLOCK)
             (GL_LINE_PK, GL_HEADER_SK, ACCOUNT_SK, BUSINESS_OFFERING_SK, COMPANY_SK, COST_CENTER_SK, CURRENCY_SK, INDUSTRY_SK, INTERCOMPANY_SK, EFFECTIVE_DATE_SK, LEDGER_SK, LINE_NUM, DESCRIPTION, ACCOUNTED_CR, ACCOUNTED_DR, AMOUNT_USD, AMOUNT_LOCAL, CREATED_BY, LAST_UPDATED_BY, LAST_UPDATED_DATE, CREATION_DATE, BZ_LOAD_DATE, SV_LOAD_DATE, CODE_COMBINATION_ID)
             SELECT
                 CAST(CONCAT(H.GLJEHEADERSJEBATCHID, H.JEHEADERID, L.JELINENUM) AS BIGINT),
@@ -111,8 +111,8 @@ BEGIN
                 L.AddDateTime,
                 SYSDATETIME(),
                 L.GlJeLinesCodeCombinationId
-            FROM bzo.GL_JournalLineExtractPVO L
-            INNER JOIN bzo.GL_JournalHeaderExtractPVO H ON H.JEHEADERID = L.JEHEADERID
+            FROM (SELECT * FROM bzo.GL_JournalLineExtractPVO WITH (NOLOCK)) L
+            INNER JOIN (SELECT * FROM bzo.GL_JournalHeaderExtractPVO WITH (NOLOCK)) H ON H.JEHEADERID = L.JEHEADERID
             LEFT JOIN svo.LINES_CODE_COMBO_LOOKUP C ON CAST(L.GLJELINESCODECOMBINATIONID AS BIGINT) = C.CODE_COMBINATION_BK
             LEFT JOIN svo.D_GL_HEADER AS DH ON DH.JE_HEADER_ID = L.JEHEADERID AND DH.CURR_IND = 'Y'
             LEFT JOIN svo.D_ACCOUNT AS DA ON DA.ACCOUNT_ID = C.ACCOUNT_ID AND DA.CURR_IND = 'Y'
@@ -126,7 +126,7 @@ BEGIN
             ;
 
             SET @RowInserted = @@ROWCOUNT;
-            SELECT @MaxWatermark = MAX(AddDateTime) FROM bzo.GL_JournalLineExtractPVO;
+            SELECT @MaxWatermark = MAX(AddDateTime) FROM (SELECT AddDateTime FROM bzo.GL_JournalLineExtractPVO WITH (NOLOCK)) x;
             PRINT 'usp_Load_F_GL_LINES: Full reload complete. Inserted ' + CAST(@RowInserted AS VARCHAR(20)) + ' rows.';
         END
         ELSE
@@ -134,7 +134,7 @@ BEGIN
             /* Incremental: single set-based INSERT (AddDateTime > @LastWatermark, NOT EXISTS on fact). No batching. */
             PRINT 'usp_Load_F_GL_LINES: Incremental load (single set-based insert).';
 
-            INSERT INTO svo.F_GL_LINES
+            INSERT INTO svo.F_GL_LINES WITH (TABLOCK)
             (GL_LINE_PK, GL_HEADER_SK, ACCOUNT_SK, BUSINESS_OFFERING_SK, COMPANY_SK, COST_CENTER_SK, CURRENCY_SK, INDUSTRY_SK, INTERCOMPANY_SK, EFFECTIVE_DATE_SK, LEDGER_SK, LINE_NUM, DESCRIPTION, ACCOUNTED_CR, ACCOUNTED_DR, AMOUNT_USD, AMOUNT_LOCAL, CREATED_BY, LAST_UPDATED_BY, LAST_UPDATED_DATE, CREATION_DATE, BZ_LOAD_DATE, SV_LOAD_DATE, CODE_COMBINATION_ID)
             SELECT
                 CAST(CONCAT(H.GLJEHEADERSJEBATCHID, H.JEHEADERID, L.JELINENUM) AS BIGINT),
@@ -161,8 +161,8 @@ BEGIN
                 L.AddDateTime,
                 SYSDATETIME(),
                 L.GlJeLinesCodeCombinationId
-            FROM bzo.GL_JournalLineExtractPVO L
-            INNER JOIN bzo.GL_JournalHeaderExtractPVO H ON H.JEHEADERID = L.JEHEADERID
+            FROM (SELECT * FROM bzo.GL_JournalLineExtractPVO WITH (NOLOCK)) L
+            INNER JOIN (SELECT * FROM bzo.GL_JournalHeaderExtractPVO WITH (NOLOCK)) H ON H.JEHEADERID = L.JEHEADERID
             LEFT JOIN svo.LINES_CODE_COMBO_LOOKUP C ON CAST(L.GLJELINESCODECOMBINATIONID AS BIGINT) = C.CODE_COMBINATION_BK
             LEFT JOIN svo.D_GL_HEADER AS DH ON DH.JE_HEADER_ID = L.JEHEADERID AND DH.CURR_IND = 'Y'
             LEFT JOIN svo.D_ACCOUNT AS DA ON DA.ACCOUNT_ID = C.ACCOUNT_ID AND DA.CURR_IND = 'Y'
@@ -177,7 +177,7 @@ BEGIN
               AND NOT EXISTS (SELECT 1 FROM svo.F_GL_LINES f WHERE f.GL_HEADER_SK = ISNULL(DH.GL_HEADER_SK, 0) AND f.LINE_NUM = L.JELINENUM);
 
             SET @RowInserted = @@ROWCOUNT;
-            SELECT @MaxWatermark = MAX(AddDateTime) FROM bzo.GL_JournalLineExtractPVO WHERE AddDateTime > @LastWatermark;
+            SELECT @MaxWatermark = MAX(AddDateTime) FROM (SELECT AddDateTime FROM bzo.GL_JournalLineExtractPVO WITH (NOLOCK) WHERE AddDateTime > @LastWatermark) x;
             PRINT 'usp_Load_F_GL_LINES: Incremental complete. Inserted ' + CAST(@RowInserted AS VARCHAR(20)) + ' rows.';
         END
 

@@ -48,17 +48,23 @@ BEGIN
         IF OBJECT_ID('tempdb..#dist') IS NOT NULL DROP TABLE #dist;
         SELECT TD.*, TD.AddDateTime AS DistAddDateTime
         INTO #dist
-        FROM (
+        FROM bzo.AR_TransactionDistributionExtractPVO TD WITH (NOLOCK)
+        WHERE TD.AddDateTime > @LastWatermark;
+
+        CREATE CLUSTERED INDEX IX_dist ON #dist (RaCustTrxLineGlDistCustTrxLineGlDistId, DistAddDateTime DESC);
+
+        IF OBJECT_ID('tempdb..#dist_one') IS NOT NULL DROP TABLE #dist_one;
+        SELECT * INTO #dist_one FROM (
             SELECT *,
-                ROW_NUMBER() OVER (PARTITION BY TD.RaCustTrxLineGlDistCustTrxLineGlDistId ORDER BY TD.AddDateTime DESC) AS rn
-            FROM bzo.AR_TransactionDistributionExtractPVO TD
-            WHERE TD.AddDateTime > @LastWatermark
-        ) TD
-        WHERE TD.rn = 1;
+                ROW_NUMBER() OVER (PARTITION BY RaCustTrxLineGlDistCustTrxLineGlDistId ORDER BY DistAddDateTime DESC) AS rn
+            FROM #dist
+        ) x WHERE rn = 1;
 
-        SELECT @MaxWatermark = MAX(DistAddDateTime) FROM #dist;
+        DROP TABLE #dist;
 
-        INSERT INTO svo.F_AR_TRANSACTION_LINE_DISTRIBUTION
+        SELECT @MaxWatermark = MAX(DistAddDateTime) FROM #dist_one;
+
+        INSERT INTO svo.F_AR_TRANSACTION_LINE_DISTRIBUTION WITH (TABLOCK)
         (CUSTOMER_SK, CUSTOMER_SITE_USE_SK, BUSINESS_UNIT_SK, LEDGER_SK, ITEM_SK, BUSINESS_OFFERING_SK, COMPANY_SK, COST_CENTER_SK, INDUSTRY_SK, INTERCOMPANY_SK, LEGAL_ENTITY_SK, ACCOUNT_SK, CURRENCY_SK,
          TRX_DATE_SK, BILLING_DATE_SK, TERM_DUE_DATE_SK, GL_DATE_SK, GL_POSTED_DATE_SK, LINE_SALES_ORDER_DATE_SK,
          AR_TRX_LINE_GL_DIST_ID, AR_TRANSACTION_ID, AR_TRANSACTION_LINE_ID, LINE_NUMBER,
@@ -111,9 +117,9 @@ BEGIN
             ISNULL(TL.RaCustomerTrxLineQuantityInvoiced, 0),
             ISNULL(TL.RaCustomerTrxLineRaCustomerTrxLineUnitSellingPrice, 0),
             CAST(TD.AddDateTime AS date)
-        FROM #dist TD
-        LEFT JOIN bzo.AR_TransactionLineExtractPVO    TL ON TL.RaCustomerTrxLineCustomerTrxLineId = TD.RaCustTrxLineGlDistCustomerTrxLineId
-        LEFT JOIN bzo.AR_TransactionHeaderExtractPVO   TH ON TH.RaCustomerTrxCustomerTrxId = TD.RaCustTrxLineGlDistCustomerTrxId
+        FROM #dist_one TD
+        LEFT JOIN bzo.AR_TransactionLineExtractPVO    TL WITH (NOLOCK) ON TL.RaCustomerTrxLineCustomerTrxLineId = TD.RaCustTrxLineGlDistCustomerTrxLineId
+        LEFT JOIN bzo.AR_TransactionHeaderExtractPVO   TH WITH (NOLOCK) ON TH.RaCustomerTrxCustomerTrxId = TD.RaCustTrxLineGlDistCustomerTrxId
         LEFT JOIN svo.LINES_CODE_COMBO_LOOKUP        C  ON TD.RaCustTrxLineGlDistCodeCombinationId = C.CODE_COMBINATION_BK
         LEFT JOIN svo.D_CUSTOMER_ACCOUNT   DCA ON DCA.CUSTOMER_ACCOUNT_ID = TH.RaCustomerTrxBillToCustomerId
         LEFT JOIN svo.D_SITE_USE           DSU ON DSU.SITE_USE = TH.RaCustomerTrxBillToSiteUseId

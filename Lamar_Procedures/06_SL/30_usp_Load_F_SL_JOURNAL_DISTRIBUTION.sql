@@ -72,17 +72,23 @@ BEGIN
             D.XlalinesPartySiteId,
             D.AddDateTime AS DistAddDateTime
         INTO #dist
-        FROM (
+        FROM bzo.SLA_SubledgerJournalDistributionPVO D WITH (NOLOCK)
+        WHERE D.AddDateTime > @LastWatermark;
+
+        CREATE CLUSTERED INDEX IX_dist ON #dist (RefAeHeaderId, TempLineNum, AeHeaderId, DistAddDateTime DESC);
+
+        IF OBJECT_ID('tempdb..#dist_one') IS NOT NULL DROP TABLE #dist_one;
+        SELECT * INTO #dist_one FROM (
             SELECT *,
-                ROW_NUMBER() OVER (PARTITION BY D.RefAeHeaderId, D.TempLineNum, D.AeHeaderId ORDER BY D.AddDateTime DESC) AS rn
-            FROM bzo.SLA_SubledgerJournalDistributionPVO D
-            WHERE D.AddDateTime > @LastWatermark
-        ) D
-        WHERE D.rn = 1;
+                ROW_NUMBER() OVER (PARTITION BY RefAeHeaderId, TempLineNum, AeHeaderId ORDER BY DistAddDateTime DESC) AS rn
+            FROM #dist
+        ) x WHERE rn = 1;
 
-        SELECT @MaxWatermark = MAX(DistAddDateTime) FROM #dist;
+        DROP TABLE #dist;
 
-        INSERT INTO svo.F_SL_JOURNAL_DISTRIBUTION (
+        SELECT @MaxWatermark = MAX(DistAddDateTime) FROM #dist_one;
+
+        INSERT INTO svo.F_SL_JOURNAL_DISTRIBUTION WITH (TABLOCK) (
             AE_HEADER_ID, REF_AE_HEADER_ID, TEMP_LINE_NUM,
             ACCOUNTING_DATE_SK,
             ACCOUNT_SK, BUSINESS_OFFERING_SK, COMPANY_SK, COST_CENTER_SK, INDUSTRY_SK, INTERCOMPANY_SK, LEGAL_ENTITY_SK, BUSINESS_UNIT_SK, VENDOR_SITE_SK, LEDGER_SK,
@@ -136,8 +142,8 @@ BEGIN
             D.XladistlinkLastUpdateLogin,
             ISNULL(D.DistAddDateTime, SYSDATETIME()),
             SYSDATETIME()
-        FROM #dist D
-        LEFT JOIN bzo.AP_InvoiceHeaderExtractPVO APH
+        FROM #dist_one D
+        LEFT JOIN bzo.AP_InvoiceHeaderExtractPVO APH WITH (NOLOCK)
             ON D.TransactionEntitySourceIdInt1 = APH.ApInvoicesInvoiceId
         LEFT JOIN svo.LINES_CODE_COMBO_LOOKUP C
             ON CAST(D.XlalinesCodeCombinationId AS BIGINT) = C.CODE_COMBINATION_BK

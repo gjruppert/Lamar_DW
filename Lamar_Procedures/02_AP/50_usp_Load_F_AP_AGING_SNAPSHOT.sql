@@ -39,7 +39,7 @@ BEGIN
         -- Option A: delete rows for current snapshot date then insert (idempotent for same day)
         DELETE FROM svo.F_AP_AGING_SNAPSHOT WHERE SNAPSHOT_DATE_SK = @SnapshotDateSk;
 
-        INSERT INTO svo.F_AP_AGING_SNAPSHOT
+        INSERT INTO svo.F_AP_AGING_SNAPSHOT WITH (TABLOCK)
         (
             SNAPSHOT_DATE_SK,
             AP_INVOICE_HEADER_SK,

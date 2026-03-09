@@ -47,32 +47,42 @@ BEGIN
 
         IF OBJECT_ID('tempdb..#pay') IS NOT NULL DROP TABLE #pay;
 
-        SELECT
-            D.ApInvoicePaymentsAllCheckId,
-            D.ApInvoicePaymentsAllInvoiceId,
-            D.ApInvoicePaymentsAllPaymentNum,
-            D.ApInvoicePaymentsAllInvoicePaymentId,
-            D.ApInvoicePaymentsAllAccountingDate,
-            D.ApInvoicePaymentsAllExchangeDate,
-            D.ApInvoicePaymentsAllInvoiceCurrencyCode,
-            D.ApInvoicePaymentsAllPaymentCurrencyCode,
-            D.ApInvoicePaymentsAllOrgId,
-            D.ApInvoicePaymentsAllSetOfBooksId,
-            D.ApInvoicePaymentsAllLastUpdateDate,
-            D.ApInvoicePaymentsAllLastUpdatedBy,
-            D.ApInvoicePaymentsAllPostedFlag,
-            D.ApInvoicePaymentsAllAmount,
-            D.ApInvoicePaymentsAllAmountInvCurr,
-            D.AddDateTime AS PaidAddDateTime,
-            H.AddDateTime AS HeaderAddDateTime,
-            S.AddDateTime AS ScheduleAddDateTime
+        SELECT *
         INTO #pay
-        FROM bzo.AP_PaidDisbursementScheduleExtractPVO D
-        LEFT JOIN bzo.AP_DisbursementHeaderExtractPVO H ON H.ApChecksAllCheckId = D.ApInvoicePaymentsAllCheckId
-        LEFT JOIN bzo.AP_InvoicePaymentScheduleExtractPVO S ON S.ApPaymentSchedulesAllInvoiceId = D.ApInvoicePaymentsAllInvoiceId AND S.ApPaymentSchedulesAllPaymentNum = D.ApInvoicePaymentsAllPaymentNum
-        WHERE D.AddDateTime > @LastWatermark
-           OR H.AddDateTime > @LastWatermark
-           OR S.AddDateTime > @LastWatermark;
+        FROM (
+            SELECT D.ApInvoicePaymentsAllCheckId, D.ApInvoicePaymentsAllInvoiceId, D.ApInvoicePaymentsAllPaymentNum,
+                D.ApInvoicePaymentsAllInvoicePaymentId, D.ApInvoicePaymentsAllAccountingDate, D.ApInvoicePaymentsAllExchangeDate,
+                D.ApInvoicePaymentsAllInvoiceCurrencyCode, D.ApInvoicePaymentsAllPaymentCurrencyCode, D.ApInvoicePaymentsAllOrgId,
+                D.ApInvoicePaymentsAllSetOfBooksId, D.ApInvoicePaymentsAllLastUpdateDate, D.ApInvoicePaymentsAllLastUpdatedBy,
+                D.ApInvoicePaymentsAllPostedFlag, D.ApInvoicePaymentsAllAmount, D.ApInvoicePaymentsAllAmountInvCurr,
+                D.AddDateTime AS PaidAddDateTime, H.AddDateTime AS HeaderAddDateTime, S.AddDateTime AS ScheduleAddDateTime
+            FROM bzo.AP_PaidDisbursementScheduleExtractPVO D WITH (NOLOCK)
+            LEFT JOIN bzo.AP_DisbursementHeaderExtractPVO H WITH (NOLOCK) ON H.ApChecksAllCheckId = D.ApInvoicePaymentsAllCheckId
+            LEFT JOIN bzo.AP_InvoicePaymentScheduleExtractPVO S WITH (NOLOCK) ON S.ApPaymentSchedulesAllInvoiceId = D.ApInvoicePaymentsAllInvoiceId AND S.ApPaymentSchedulesAllPaymentNum = D.ApInvoicePaymentsAllPaymentNum
+            WHERE D.AddDateTime > @LastWatermark
+            UNION
+            SELECT D.ApInvoicePaymentsAllCheckId, D.ApInvoicePaymentsAllInvoiceId, D.ApInvoicePaymentsAllPaymentNum,
+                D.ApInvoicePaymentsAllInvoicePaymentId, D.ApInvoicePaymentsAllAccountingDate, D.ApInvoicePaymentsAllExchangeDate,
+                D.ApInvoicePaymentsAllInvoiceCurrencyCode, D.ApInvoicePaymentsAllPaymentCurrencyCode, D.ApInvoicePaymentsAllOrgId,
+                D.ApInvoicePaymentsAllSetOfBooksId, D.ApInvoicePaymentsAllLastUpdateDate, D.ApInvoicePaymentsAllLastUpdatedBy,
+                D.ApInvoicePaymentsAllPostedFlag, D.ApInvoicePaymentsAllAmount, D.ApInvoicePaymentsAllAmountInvCurr,
+                D.AddDateTime AS PaidAddDateTime, H.AddDateTime AS HeaderAddDateTime, S.AddDateTime AS ScheduleAddDateTime
+            FROM bzo.AP_PaidDisbursementScheduleExtractPVO D WITH (NOLOCK)
+            INNER JOIN bzo.AP_DisbursementHeaderExtractPVO H WITH (NOLOCK) ON H.ApChecksAllCheckId = D.ApInvoicePaymentsAllCheckId
+            LEFT JOIN bzo.AP_InvoicePaymentScheduleExtractPVO S WITH (NOLOCK) ON S.ApPaymentSchedulesAllInvoiceId = D.ApInvoicePaymentsAllInvoiceId AND S.ApPaymentSchedulesAllPaymentNum = D.ApInvoicePaymentsAllPaymentNum
+            WHERE H.AddDateTime > @LastWatermark
+            UNION
+            SELECT D.ApInvoicePaymentsAllCheckId, D.ApInvoicePaymentsAllInvoiceId, D.ApInvoicePaymentsAllPaymentNum,
+                D.ApInvoicePaymentsAllInvoicePaymentId, D.ApInvoicePaymentsAllAccountingDate, D.ApInvoicePaymentsAllExchangeDate,
+                D.ApInvoicePaymentsAllInvoiceCurrencyCode, D.ApInvoicePaymentsAllPaymentCurrencyCode, D.ApInvoicePaymentsAllOrgId,
+                D.ApInvoicePaymentsAllSetOfBooksId, D.ApInvoicePaymentsAllLastUpdateDate, D.ApInvoicePaymentsAllLastUpdatedBy,
+                D.ApInvoicePaymentsAllPostedFlag, D.ApInvoicePaymentsAllAmount, D.ApInvoicePaymentsAllAmountInvCurr,
+                D.AddDateTime AS PaidAddDateTime, H.AddDateTime AS HeaderAddDateTime, S.AddDateTime AS ScheduleAddDateTime
+            FROM bzo.AP_PaidDisbursementScheduleExtractPVO D WITH (NOLOCK)
+            LEFT JOIN bzo.AP_DisbursementHeaderExtractPVO H WITH (NOLOCK) ON H.ApChecksAllCheckId = D.ApInvoicePaymentsAllCheckId
+            INNER JOIN bzo.AP_InvoicePaymentScheduleExtractPVO S WITH (NOLOCK) ON S.ApPaymentSchedulesAllInvoiceId = D.ApInvoicePaymentsAllInvoiceId AND S.ApPaymentSchedulesAllPaymentNum = D.ApInvoicePaymentsAllPaymentNum
+            WHERE S.AddDateTime > @LastWatermark
+        ) x;
 
         -- Dedupe by invoice payment id (keep one row per payment)
         IF OBJECT_ID('tempdb..#pay_one') IS NOT NULL DROP TABLE #pay_one;
@@ -87,7 +97,7 @@ BEGIN
             FROM #pay_one
         ) m;
 
-        INSERT INTO svo.F_AP_PAYMENTS (
+        INSERT INTO svo.F_AP_PAYMENTS WITH (TABLOCK) (
             AP_INVOICE_PAYMENTS_ALL_CHECK_ID, AP_CHECKS_ALL_CHECK_NUMBER, AP_INVOICE_HEADER_SK, AP_DISBURSEMENT_HEADER_SK,
             LEGAL_ENTITY_SK, VENDOR_SITE_SK, BUSINESS_UNIT_SK, LEDGER_SK, ACCOUNT_SK, BUSINESS_OFFERING_SK, COMPANY_SK, COST_CENTER_SK, INDUSTRY_SK, INTERCOMPANY_SK,
             INV_CURRENCY_SK, PAY_CURRENCY_SK,
@@ -139,10 +149,10 @@ BEGIN
             D.AddDateTime,
             SYSDATETIME()
         FROM #pay_one pay_one
-        JOIN bzo.AP_PaidDisbursementScheduleExtractPVO D ON D.ApInvoicePaymentsAllCheckId = pay_one.ApInvoicePaymentsAllCheckId AND D.ApInvoicePaymentsAllInvoiceId = pay_one.ApInvoicePaymentsAllInvoiceId AND D.ApInvoicePaymentsAllPaymentNum = pay_one.ApInvoicePaymentsAllPaymentNum
-        JOIN bzo.AP_InvoiceHeaderExtractPVO IH ON IH.ApInvoicesInvoiceId = D.ApInvoicePaymentsAllInvoiceId
-        LEFT JOIN bzo.AP_DisbursementHeaderExtractPVO H ON H.ApChecksAllCheckId = D.ApInvoicePaymentsAllCheckId
-        LEFT JOIN bzo.AP_InvoicePaymentScheduleExtractPVO S ON S.ApPaymentSchedulesAllInvoiceId = D.ApInvoicePaymentsAllInvoiceId AND S.ApPaymentSchedulesAllPaymentNum = D.ApInvoicePaymentsAllPaymentNum
+        JOIN bzo.AP_PaidDisbursementScheduleExtractPVO D WITH (NOLOCK) ON D.ApInvoicePaymentsAllCheckId = pay_one.ApInvoicePaymentsAllCheckId AND D.ApInvoicePaymentsAllInvoiceId = pay_one.ApInvoicePaymentsAllInvoiceId AND D.ApInvoicePaymentsAllPaymentNum = pay_one.ApInvoicePaymentsAllPaymentNum
+        JOIN bzo.AP_InvoiceHeaderExtractPVO IH WITH (NOLOCK) ON IH.ApInvoicesInvoiceId = D.ApInvoicePaymentsAllInvoiceId
+        LEFT JOIN bzo.AP_DisbursementHeaderExtractPVO H WITH (NOLOCK) ON H.ApChecksAllCheckId = D.ApInvoicePaymentsAllCheckId
+        LEFT JOIN bzo.AP_InvoicePaymentScheduleExtractPVO S WITH (NOLOCK) ON S.ApPaymentSchedulesAllInvoiceId = D.ApInvoicePaymentsAllInvoiceId AND S.ApPaymentSchedulesAllPaymentNum = D.ApInvoicePaymentsAllPaymentNum
         LEFT JOIN svo.D_LEGAL_ENTITY LE ON LE.LEGAL_ENTITY_ID = H.ApChecksAllLegalEntityId AND LE.CURR_IND = 'Y'
         LEFT JOIN svo.D_VENDOR_SITE V ON V.VENDOR_SITE_ID = H.ApChecksAllVendorSiteId AND V.CURR_IND = 'Y'
         LEFT JOIN svo.D_BUSINESS_UNIT BU ON BU.BUSINESS_UNIT_ID = D.ApInvoicePaymentsAllOrgId AND BU.CURR_IND = 'Y'

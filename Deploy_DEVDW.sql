@@ -47,8 +47,8 @@ PRINT '--- 02_AP ---';
 GO
 :r StoredProcedures/02_AP/10_usp_Load_D_AP_DISBURSEMENT_HEADER.sql
 :r StoredProcedures/02_AP/20_usp_Load_D_AP_INVOICE_HEADER.sql
-:r StoredProcedures/02_AP/30_usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION.sql
-:r StoredProcedures/02_AP/35_usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION_V2.sql
+:r StoredProcedures/02_AP/30_usp_Load_STG_AP_INVOICE_LINE_DISTRIBUTION.sql
+:r StoredProcedures/02_AP/35_usp_Load_F_AP_INVOICE_LINE_DISTRIBUTION.sql
 :r StoredProcedures/02_AP/40_usp_Load_F_AP_PAYMENTS.sql
 :r StoredProcedures/02_AP/50_usp_Load_F_AP_AGING_SNAPSHOT.sql
 PRINT '--- 03_GL ---';

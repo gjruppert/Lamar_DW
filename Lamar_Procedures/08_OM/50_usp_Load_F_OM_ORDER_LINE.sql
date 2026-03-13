@@ -88,7 +88,7 @@ BEGIN
             ISNULL(L.LineUnitSellingPrice, 0),
             ISNULL(L.LineStatusCode, 'UNK'),
             ISNULL(L.LineCategoryCode, 'UNK'),
-            CAST(L.LineAddDateTime AS DATE),
+            CAST(L.LineAddDateTime AS DATETIME2(0)),
             SYSDATETIME()
         FROM #lines L
         LEFT JOIN svo.D_OM_ORDER_HEADER OH ON OH.ORDER_HEADER_ID = L.LineHeaderId

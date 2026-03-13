@@ -94,8 +94,8 @@ BEGIN
             ISNULL(DC3.DATE_SK, 0),
             ISNULL(L.ChargeId, 0),
             ISNULL(L.Amount, 0),
-            CAST(GETDATE() AS DATE),
-            CAST(GETDATE() AS DATE)
+            SYSDATETIME(),
+            SYSDATETIME()
         FROM #lines L
         LEFT JOIN svo.D_SM_SUBSCRIPTION         DS  ON DS.SUBSCRIPTION_ID = L.SubscriptionId
         LEFT JOIN svo.D_SM_SUBSCRIPTION_PRODUCT DSP ON DSP.SUBSCRIPTION_PRODUCT_ID = L.SubscriptionProductId

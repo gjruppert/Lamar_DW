@@ -85,8 +85,8 @@ BEGIN
                 LM_PANEL_NUMBER                   NVARCHAR(1300) NULL,
                 LM_ORACLE_PART_NUMBER             NVARCHAR(100) NULL,
                 IS_DELETED                        BIT NULL,
-                BZ_LOAD_DATE                      DATETIME NULL,
-                SV_LOAD_DATE                      DATETIME NOT NULL DEFAULT GETDATE(),
+                BZ_LOAD_DATE                      DATETIME2(0) NULL,
+                SV_LOAD_DATE                      DATETIME2(0) NOT NULL DEFAULT SYSDATETIME(),
                 CONSTRAINT PK_F_SF_OPPORTUNITY_LINE_ITEM PRIMARY KEY CLUSTERED (OPPORTUNITY_LINE_ITEM_PK) ON [PRIMARY],
                 CONSTRAINT UK_F_SF_OPPORTUNITY_LINE_ITEM_NK UNIQUE (OPPORTUNITY_LINE_ITEM_ID)
             ) ON [PRIMARY];
@@ -149,8 +149,8 @@ BEGIN
                 li.LM_Panel_Number__c,
                 li.LM_Oracle_Part_Number__c,
                 li.IsDeleted,
-                CAST(COALESCE(li.CreatedDate, li.LastModifiedDate) AS DATE),
-                @AsOfDate
+                CAST(COALESCE(li.CreatedDate, li.LastModifiedDate) AS DATETIME2(0)),
+                SYSDATETIME()
             FROM bzo.SF_OpportunityLineItem li
             LEFT JOIN svo.D_SF_OPPORTUNITY d ON d.OPPORTUNITY_ID = li.OpportunityId
             WHERE li.Id IS NOT NULL;
@@ -166,6 +166,10 @@ BEGIN
             SELECT @MaxWatermark = MAX(COALESCE(li.SystemModstamp, li.LastModifiedDate, li.CreatedDate))
             FROM bzo.SF_OpportunityLineItem li
             WHERE li.Id IS NOT NULL;
+
+            /* Ensure watermark is set even when source is empty */
+            IF @MaxWatermark IS NULL
+                SET @MaxWatermark = CAST(GETDATE() AS DATETIME2(7));
         END
         ELSE
         BEGIN
@@ -256,7 +260,7 @@ BEGIN
                     s.LM_Oracle_Part_Number__c,
                     s.IsDeleted,
                     CAST(COALESCE(s.CreatedDate, s.LastModifiedDate) AS DATETIME) AS BZ_LOAD_DATE,
-                    CAST(@AsOfDate AS DATETIME) AS SV_LOAD_DATE
+                    SYSDATETIME() AS SV_LOAD_DATE
                 FROM #src s
                 LEFT JOIN svo.D_SF_OPPORTUNITY d ON d.OPPORTUNITY_ID = s.OpportunityId
             ) AS src

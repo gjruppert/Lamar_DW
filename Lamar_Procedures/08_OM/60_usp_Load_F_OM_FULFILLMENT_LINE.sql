@@ -151,7 +151,7 @@ BEGIN
             ISNULL(FL.FulfillLineUnitSellingPrice, 0),
             ISNULL(FL.FulfillLineExtendedAmount, 0),
             ISNULL(FL.HeaderTransactionalCurrencyCode, 'UNK'),
-            CAST(FL.HeaderAddDateTime AS DATE),
+            CAST(FL.HeaderAddDateTime AS DATETIME2(0)),
             SYSDATETIME()
         FROM #fulfill FL
         LEFT JOIN svo.D_OM_ORDER_HEADER DSH ON DSH.ORDER_HEADER_ID = FL.FulfillLineHeaderId

@@ -65,21 +65,21 @@ BEGIN
             ISNULL(FL.FulfillLineItemTypeCode, 'UNK') AS ITEM_TYPE_CODE,
             ISNULL(L.LineInventoryItemId, -1) AS INVENTORY_ITEM_ID,
             ISNULL(L.LineInventoryOrganizationId, -1) AS INVENTORY_ORG_ID,
-            ISNULL(LP.bookingType, -1) AS BOOKING_TYPE,
-            ISNULL(LP.bundleCode, -1) AS BUNDLE_CODE,
-            ISNULL(LP.bundleDescription, -1) AS BUNDLE_DESCRIPTION,
-            ISNULL(LP.businessOffering, -1) AS BUSINESS_OFFERING_RAW,
-            ISNULL(LP.market, -1) AS MARKET,
-            COALESCE(R.mediaType, LP.mediaTypeProductType, -1) AS MEDIA_TYPE,
-            ISNULL(LP.refund, -1) AS REFUND_FLAG,
-            ISNULL(R.aeCode, -1) AS AE_CODE,
-            ISNULL(R.aeName, -1) AS AE_NAME,
-            ISNULL(R.salesTeam, -1) AS SALES_TEAM,
-            ISNULL(R.lob, -1) AS LOB,
-            ISNULL(R.industry, -1) AS INDUSTRY_NAME,
-            ISNULL(R2.digitalSlotNumber, -1) AS DIGITAL_SLOT_NUMBER,
-            ISNULL(R2.digitalSlotType, -1) AS DIGITAL_SLOT_TYPE,
-            ISNULL(OVR.suppressSendToRmcs, -1) AS OVERRIDE_SUPPRESS_SEND,
+            ISNULL(LP.bookingType, 'UNK') AS BOOKING_TYPE,
+            ISNULL(LP.bundleCode,  'UNK') AS BUNDLE_CODE,
+            ISNULL(LP.bundleDescription,  'UNK') AS BUNDLE_DESCRIPTION,
+            ISNULL(LP.businessOffering,  'UNK') AS BUSINESS_OFFERING_RAW,
+            ISNULL(LP.market, 'UNK') AS MARKET,
+            COALESCE(R.mediaType, LP.mediaTypeProductType, 'UNK') AS MEDIA_TYPE,
+            ISNULL(LP.refund,  'UNK') AS REFUND_FLAG,
+            ISNULL(R.aeCode,  'UNK') AS AE_CODE,
+            ISNULL(R.aeName,  'UNK') AS AE_NAME,
+            ISNULL(R.salesTeam,  'UNK') AS SALES_TEAM,
+            ISNULL(R.lob,  'UNK') AS LOB,
+            ISNULL(R.industry,  'UNK') AS INDUSTRY_NAME,
+            ISNULL(R2.digitalSlotNumber,  -1) AS DIGITAL_SLOT_NUMBER,
+            ISNULL(R2.digitalSlotType,  'UNK') AS DIGITAL_SLOT_TYPE,
+            ISNULL(OVR.suppressSendToRmcs,  'UNK') AS OVERRIDE_SUPPRESS_SEND,
             ISNULL(L.LineUnitListPrice, 0) AS UNIT_LIST_PRICE,
             ISNULL(L.LineUnitSellingPrice, 0) AS UNIT_SELLING_PRICE,
             ISNULL(L.LineOrderedQty, 0) AS ORDERED_QTY,
@@ -89,11 +89,11 @@ BEGIN
             L.AddDateTime AS SourceAddDateTime
         INTO #src
         FROM bzo.OM_LineExtractPVO L
-        LEFT JOIN bzo.OM_5FLineprivateVO LP ON LP.EffLineId = L.LineId
-        LEFT JOIN bzo.OM_ReferenceprivateVO R ON R.EffLineId = L.LineId
-        LEFT JOIN bzo.OM_References2privateVO R2 ON R2.EffLineId = L.LineId
-        LEFT JOIN bzo.OM_OverrideprivateVO OVR ON OVR.EffLineId = L.LineId
-        LEFT JOIN bzo.OM_FulfillLineExtractPVO FL ON FL.FulfillLineId = L.LineId
+        LEFT JOIN bzo.OM_FulfillLineExtractPVO FL ON  L.LineId = FL.FulfillLineLineId 
+        LEFT JOIN bzo.OM_5FLineprivateVO LP ON LP.FulFillLineId = FL.FulFillLineId
+        LEFT JOIN bzo.OM_ReferenceprivateVO R ON R.FulFillLineId = FL.FulFillLineId
+        LEFT JOIN bzo.OM_References2privateVO R2 ON R2.FulFillLineId = FL.FulFillLineId
+        LEFT JOIN bzo.OM_OverrideprivateVO OVR ON OVR.FulFillLineId = FL.FulFillLineId
         WHERE L.AddDateTime > @LastWatermark;
 
         SELECT @MaxWatermark = MAX(SourceAddDateTime) FROM #src;
